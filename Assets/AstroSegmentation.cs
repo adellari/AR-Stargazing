@@ -1,11 +1,12 @@
-using System.Text;
-using Niantic.Lightship.AR.Utilities;
-using UnityEngine.XR.ARFoundation.Samples;
-using Niantic.Lightship.AR.ARFoundation;
-using UnityEngine.XR.ARSubsystems;
+using System.Linq;
+using Niantic.Lightship.AR.Semantics;
+using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.ARSubsystems;
+using System.Text;
+using UnityEngine.XR.ARFoundation;
 
-namespace UnityEngine.XR.ARFoundation.Samples
+namespace Niantic.Lightship.AR.Samples
 {
     public class AstroSegmentation : MonoBehaviour
     {
@@ -17,33 +18,26 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
         protected ScreenOrientation m_CurrentScreenOrientation;
 
-        [SerializeField]
-        [Tooltip("The ARCameraManager which will produce camera frame events.")]
+        [SerializeField] [Tooltip("The ARCameraManager which will produce camera frame events.")]
         ARCameraManager m_CameraManager;
 
-        [SerializeField]
-        protected RawImage m_RawImage;
-        [SerializeField]
-        protected RawImage m_RawImage2;
+        [SerializeField] protected RawImage m_RawImage;
+        [SerializeField] protected RawImage m_RawImage2;
 
-        [SerializeField]
-        Material m_Material;
+        [SerializeField] Material m_Material;
 
-        [SerializeField]
-        MeshRenderer skybox;
+        [SerializeField] MeshRenderer skybox;
 
-        [SerializeField]
-        Cubemap skycube;
+        [SerializeField] Cubemap skycube;
 
-        [SerializeField]
-        Text m_ImageInfo;
+        [SerializeField] Text m_ImageInfo;
 
         // The rendering Unity camera
         private Camera m_camera;
 
         public Texture _texture;
         public Matrix4x4 displayMatrix;
-        
+
 
         private bool segmentationReady = false;
 
@@ -55,7 +49,8 @@ namespace UnityEngine.XR.ARFoundation.Samples
             m_camera = Camera.main;
             segmentationManager = Camera.main.GetComponent<ARSemanticSegmentationManager>();
 
-            segmentationManager.SemanticModelIsReady += OnSemanticModelReady;
+            segmentationManager.MetadataInitialized += OnSemanticModelReady;
+            
 
             // Get the current screen orientation, and update the raw image UI
             m_CurrentScreenOrientation = Screen.orientation;
@@ -66,7 +61,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
             UpdateRawImage();
         }
 
-        private void OnSemanticModelReady(ARSemanticModelReadyEventArgs args)
+        private void OnSemanticModelReady(ARSemanticSegmentationModelEventArgs args)
         {
             segmentationReady = true;
         }
@@ -93,11 +88,12 @@ namespace UnityEngine.XR.ARFoundation.Samples
             if (segmentationReady)
             {
                 // Update the texture with the confidence values of the currently selected channel
-                segmentationManager.GetSemanticChannelTexture("artificial_ground", viewport, ref _texture, out displayMatrix);
+                _texture = segmentationManager.GetSemanticChannelTexture("artificial_ground", out displayMatrix, viewport);
+                //segmentationManager.GetSemanticChannelTexture("artificial_ground", viewport, ref _texture, out displayMatrix);
 
                 m_RawImage.texture = _texture;
                 //m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-                
+
                 m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
                 m_RawImage.material.SetTexture("_SemanticTex", _texture);
                 m_RawImage2.texture = _texture;
@@ -106,7 +102,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
                 //m_RawImage.material.SetTexture("_Tex", skycube);
 
             }
-            
+
 
             /*
             m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
@@ -162,7 +158,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
             // The aspect ratio of the presentation in landscape orientation
             var aspect = Mathf.Max(m_camera.pixelWidth, m_camera.pixelHeight) /
-                (float)Mathf.Min(m_camera.pixelWidth, m_camera.pixelHeight);
+                         (float)Mathf.Min(m_camera.pixelWidth, m_camera.pixelHeight);
 
             // Determine the raw image rectSize preserving the texture aspect ratio, matching the screen orientation,
             // and keeping a minimum dimension size.
@@ -187,5 +183,5 @@ namespace UnityEngine.XR.ARFoundation.Samples
             m_RawImage.material = m_Material;
         }
     }
-}
 
+}

@@ -62,12 +62,13 @@ Shader "Unlit/SkyboxQuad"
                 float mask = confidence.r;
                 mask = step(0.1, mask);
 
+                /*
                 fixed2 offset = 1.0 / _SemanticMask_TexelSize.xy; // This gives you the size of one texel
                 fixed left = tex2D(_SemanticMask, s_uv + fixed2(-offset.x, 0)).r;
                 fixed right = tex2D(_SemanticMask, s_uv + fixed2(offset.x, 0)).r;
                 fixed up = tex2D(_SemanticMask, s_uv + fixed2(0, offset.y)).r;
-                fixed down = tex2D(_SemanticMask s_uv + fixed2(0, -offset.y)).r;
-
+                fixed down = tex2D(_SemanticMask, s_uv + fixed2(0, -offset.y)).r;
+                */
                 
 
                 float3 forward = float3(0, 0, -1);
