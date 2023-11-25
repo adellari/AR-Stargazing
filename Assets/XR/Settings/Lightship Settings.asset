@@ -14,19 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _apiKey: ueyjRlE3u9WMDPXFRj4WdbFTKsm6LAesGXAXZlHZSmR2z0zQtGYiA2EUnabP7asNeyOpCw
   _useLightshipDepth: 1
-  _useLightshipMeshing: 1
+  _useLightshipMeshing: 0
   _preferLidarIfAvailable: 1
-  _lightshipDepthFrameRate: 20
   _useLightshipPersistentAnchor: 1
   _useLightshipSemanticSegmentation: 1
-  _LightshipSemanticSegmentationFrameRate: 10
   _useLightshipScanning: 0
-  _editorPlaybackSettings:
-    _usePlayback: 0
-    _playbackDatasetPath: 
-    _runPlaybackManually: 0
-    _loopInfinitely: 0
-    _numberOfIterations: 1
+  _overrideLoggingLevel: 0
+  _logLevel: 3
   _devicePlaybackSettings:
     _usePlayback: 0
     _playbackDatasetPath: 

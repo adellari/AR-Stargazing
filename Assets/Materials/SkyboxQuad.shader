@@ -34,15 +34,40 @@ Shader "Unlit/SkyboxQuad"
 
             samplerCUBE _MainTex;
             float4 _MainTex_ST;
+            float4 _MainTex_TexelSize;
 
             sampler2D _SemanticMask;
             float4 _SemanticMask_ST;
+            float4 _SemanticMask_TexelSize;
             
             float4x4 _InverseViewMatrix;
             float4x4 _DisplayMatrix;
 
+            fixed4 Lerp(fixed4 a, fixed4 b, float t)
+            {
+                return a * (1 - t) + b * t;
+            }
 
-            
+            fixed3 bilinearSample(fixed2 texcoord, fixed2 dim)
+            {
+                fixed3 result;
+                fixed2 pix = texcoord * dim.x + 0.5;
+                fixed2 fract = frac(pix);
+                
+                fixed2 texSize = _SemanticMask_TexelSize.xy / 2;
+                
+                fixed4 tl = tex2D(_SemanticMask, fixed2(texcoord) + fixed2(-texSize.x, -texSize.y));
+                fixed4 tr = tex2D(_SemanticMask, fixed2(texcoord) + fixed2(texSize.x, -texSize.y));
+                fixed4 bl = tex2D(_SemanticMask, fixed2(texcoord) + fixed2(-texSize.x, texSize.y));
+                fixed4 br = tex2D(_SemanticMask, fixed2(texcoord) + fixed2(texSize.x, texSize.y));
+
+                fixed4 top = Lerp(tl, tr, fract.x);
+                fixed4 bot = Lerp(bl, br, fract.x);
+
+                result = Lerp(top, bot, fract.y).xyz;
+                
+                return result;
+            }
             
 
             v2f vert (appdata v)
@@ -58,6 +83,7 @@ Shader "Unlit/SkyboxQuad"
             {
 
                 float2 s_uv = float2(i.texcoord.xy / i.texcoord.z);
+                //fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw);
                 fixed4 confidence = tex2D(_SemanticMask, s_uv);
                 float mask = confidence.r;
                 mask = step(0.1, mask);
