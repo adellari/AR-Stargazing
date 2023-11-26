@@ -43,7 +43,17 @@ void Bilinear_Sample(uint3 id : SV_DispatchThreadID)
     
     float3 result;
     float2 halfTexel = texelSize2 / 2;
-    
+
+    float4 tl = Texture.SampleLevel(TexLinearClampSampler, uv - halfTexel, 0);
+    float4 tr = Texture.SampleLevel(TexLinearClampSampler, uv + float2(halfTexel.x, -halfTexel.y), 0);
+    float4 bl = Texture.SampleLevel(TexLinearClampSampler, uv + float2(-halfTexel.x, halfTexel.y), 0);
+    float4 br = Texture.SampleLevel(TexLinearClampSampler, uv + halfTexel, 0);
+
+    float4 top = Lerp(tl, tr, fract.x);
+    float4 bot = Lerp(bl, br, fract.x);
+
+    float4 res = Lerp(top, bot, fract.y);
+    Result[id.xy] = res;
 }
 
 [numthreads(8, 8, 1)]
