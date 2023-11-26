@@ -94,7 +94,7 @@ namespace Niantic.Lightship.AR.Samples
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
-                    //Debug.Log("created mask render texture");
+                    Debug.Log($"created mask render texture, initial dimensions {_texture.width} by {_texture.height}");
                 }
                 //Debug.Log("about to dispatch flood");
                 DispatchFlood(_texture);
