@@ -1,0 +1,70 @@
+
+#pragma kernel JFA_Init
+#pragma kernel JFA_Step
+
+RWTexture2D<float4> Result;
+float2 TexSize;
+
+[numthreads(8, 8, 1)]
+void JFA_Init(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy / TexSize);
+    Result[id.xy] = float4(uv, 0, 1) * step(0.1, Result[id.xy].r);
+    
+}
+
+
+[numthreads(8, 8, 1)]
+void JFA_Step(uint3 id : SV_DispatchThreadID)
+{
+    const float2 uv = float2(id.xy / TexSize);
+    const float2 texelSize = 1 / TexSize;
+
+    //create indices to crawl
+    const uint2 pixels[9] =
+        {
+        uint2(id.x - 3, id.y - 3),
+        uint2(id.x, id.y - 3), uint2(id.x + 3, id.y - 3),
+        uint2(id.x - 3, id.y), uint2(id.x, id.y), uint2(id.x, id.y + 3),
+        uint2(id.x - 3, id.y + 3), uint2(id.x, id.y + 3), uint2(id.x + 3, id.y + 3)
+        };
+    /*
+    uint2 s1 = uint2(id.x - 3, id.y - 3);
+    uint2 s2 = uint2(id.x, id.y - 3);
+    uint2 s3 = uint2(id.x + 3, id.y - 3);
+    uint2 s4 = uint2(id.x - 3, id.y);
+    uint2 s5 = uint2(id.x, id.y);   //our pixel
+    uint2 s6 = uint2(id.x, id.y + 3);
+    uint2 s7 = uint2(id.x - 3, id.y + 3);
+    uint2 s8 = uint2(id.x, id.y + 3);
+    uint2 s9 = uint2(id.x + 3, id.y + 3);
+    */
+    int _id = -1;
+    float _max = -1000000000;
+    
+    for (int a =0; a<9; a++)
+    {
+        const uint2 pix = pixels[a];
+        float4 val = Result[pix];
+        
+        if (length(val) == 0)
+            continue;
+
+        float2 _uv = val.xy * texelSize;
+        float _dist = distance(uv, _uv);
+        
+        if (_dist < _max)
+        {
+            _max = _dist;
+            _id = a;
+        }
+    }
+    if (_id < 0)
+        return;
+    float2 closest = pixels[_id] * texelSize;
+    Result[id.xy] = float4(closest, 0, 1);
+    //Result[id.xy] = Result[id.xy];
+}
+
+
+

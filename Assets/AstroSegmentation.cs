@@ -14,36 +14,27 @@ namespace Niantic.Lightship.AR.Samples
         const string k_DisplayMatrixName = "DisplayMatrix";
         public ARSemanticSegmentationManager segmentationManager;
         private readonly int k_DisplayMatrix = Shader.PropertyToID(k_DisplayMatrixName);
-        protected readonly StringBuilder m_StringBuilder = new();
 
         protected ScreenOrientation m_CurrentScreenOrientation;
-
-        [SerializeField] [Tooltip("The ARCameraManager which will produce camera frame events.")]
-        ARCameraManager m_CameraManager;
-
         [SerializeField] protected RawImage m_RawImage;
         [SerializeField] protected RawImage m_RawImage2;
-
+        [SerializeField] protected RawImage m_maskImage;
+        
         [SerializeField] Material m_Material;
-
-        [SerializeField] MeshRenderer skybox;
-
-        [SerializeField] Cubemap skycube;
-
-        [SerializeField] Text m_ImageInfo;
-
         // The rendering Unity camera
         private Camera m_camera;
 
         public Texture _texture;
         public Matrix4x4 displayMatrix;
-
-
         private bool segmentationReady = false;
+
+        [Header("Compute")] 
+        [SerializeField] private RenderTexture JFA_Mask;
+        [SerializeField] private ComputeShader compute;
+
 
         void Awake()
         {
-            m_CameraManager = Camera.main.GetComponent<ARCameraManager>();
 
             // Acquire a reference to the rendering camera
             m_camera = Camera.main;
@@ -99,26 +90,36 @@ namespace Niantic.Lightship.AR.Samples
                 m_RawImage2.texture = _texture;
                 m_RawImage2.material.SetTexture("_SemanticMask", _texture);
                 m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
-                //m_RawImage.material.SetTexture("_Tex", skycube);
 
-            }
-
-
-            /*
-            m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-
-            if (m_RawImage.texture != null)
-            {
-                // Display some text information about each of the textures.
-                var displayTexture = m_RawImage.texture as Texture2D;
-                if (displayTexture != null)
+                if (!JFA_Mask)
                 {
-                    m_StringBuilder.Clear();
-                    //BuildTextureInfo(m_StringBuilder, "env", displayTexture);
-                    //LogText(m_StringBuilder.ToString());
+                    var dim = new Vector2Int(_texture.width, _texture.height);
+                    JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
+                    JFA_Mask.enableRandomWrite = true;
+                    JFA_Mask.Create();
                 }
+                
+                DispatchFlood(_texture);
+
             }
+            
+        }
+
+        void DispatchFlood(Texture mask)
+        {
+            var dim = new Vector2Int(mask.width, mask.height);
+            Graphics.Blit(mask, JFA_Mask);
+            
+            compute.SetTexture(0, "Result", JFA_Mask);
+            compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
+            compute.Dispatch(0, dim.x/8, dim.y/8, 1);
+            
+            /*
+            compute.SetTexture(1, "Result", JFA_Mask);
+            compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             */
+            m_maskImage.texture = JFA_Mask;
         }
 
 
@@ -138,19 +139,7 @@ namespace Niantic.Lightship.AR.Samples
                 stringBuilder.AppendLine($"   mipmap : {texture.mipmapCount}");
             }
         }
-
-
-        private void LogText(string text)
-        {
-            if (m_ImageInfo != null)
-            {
-                m_ImageInfo.text = text;
-            }
-            else
-            {
-                Debug.Log(text);
-            }
-        }
+        
 
         private void UpdateRawImage()
         {
@@ -181,6 +170,12 @@ namespace Niantic.Lightship.AR.Samples
             // Update the raw image dimensions and the raw image material parameters.
             m_RawImage.rectTransform.sizeDelta = rectSize;
             m_RawImage.material = m_Material;
+        }
+
+        void OnApplicationQuit()
+        {
+            if(JFA_Mask)
+                JFA_Mask.Release();
         }
     }
 
