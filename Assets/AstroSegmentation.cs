@@ -71,20 +71,17 @@ namespace Niantic.Lightship.AR.Samples
 
             var viewport = new XRCameraParams
             {
-                screenWidth = (int)(sizeDelta.x), //was sizeDelta.x 
+                screenWidth = (int)(sizeDelta.x), 
                 screenHeight = (int)sizeDelta.y,
                 screenOrientation = m_CurrentScreenOrientation
             };
 
             if (segmentationReady)
             {
-                // Update the texture with the confidence values of the currently selected channel
                 _texture = segmentationManager.GetSemanticChannelTexture("artificial_ground", out displayMatrix, viewport);
-                //segmentationManager.GetSemanticChannelTexture("artificial_ground", viewport, ref _texture, out displayMatrix);
 
                 m_RawImage.texture = _texture;
-                //m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-
+                
                 m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
                 m_RawImage.material.SetTexture("_SemanticTex", _texture);
                 m_RawImage2.texture = _texture;
@@ -97,8 +94,9 @@ namespace Niantic.Lightship.AR.Samples
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
+                    Debug.Log("created mask render texture");
                 }
-                
+                Debug.Log("about to dispatch flood");
                 DispatchFlood(_texture);
 
             }
@@ -107,18 +105,28 @@ namespace Niantic.Lightship.AR.Samples
 
         void DispatchFlood(Texture mask)
         {
+            Debug.Log("started calling flood");
             var dim = new Vector2Int(mask.width, mask.height);
             Graphics.Blit(mask, JFA_Mask);
             
             compute.SetTexture(0, "Result", JFA_Mask);
             compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
             compute.Dispatch(0, dim.x/8, dim.y/8, 1);
+            //Debug.Log("successfully executed init");
             
-            /*
+            compute.SetInt("offset", 3);
             compute.SetTexture(1, "Result", JFA_Mask);
-            compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
-            */
+            //Debug.Log("successfully executed step 1");
+            
+            compute.SetInt("offset", 2);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
+            //Debug.Log("successfully executed step 2");
+            
+            compute.SetInt("offset", 1);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
+            //Debug.Log("successfully finished JFA");
+            
             m_maskImage.texture = JFA_Mask;
         }
 

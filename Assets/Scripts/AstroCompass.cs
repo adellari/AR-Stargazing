@@ -105,7 +105,7 @@ public class AstroCompass : MonoBehaviour
         Debug.Log("Main camera flags: " + Camera.main.clearFlags);
         */
 
-        Debug.Log("skybox camera enabled: " + skyBoxCam.enabled);
+        //Debug.Log("skybox camera enabled: " + skyBoxCam.enabled);
     }
 
     private IEnumerator calibrate()
