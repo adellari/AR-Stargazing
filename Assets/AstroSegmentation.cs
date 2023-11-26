@@ -94,9 +94,9 @@ namespace Niantic.Lightship.AR.Samples
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
-                    Debug.Log("created mask render texture");
+                    //Debug.Log("created mask render texture");
                 }
-                Debug.Log("about to dispatch flood");
+                //Debug.Log("about to dispatch flood");
                 DispatchFlood(_texture);
 
             }
@@ -105,7 +105,7 @@ namespace Niantic.Lightship.AR.Samples
 
         void DispatchFlood(Texture mask)
         {
-            Debug.Log("started calling flood");
+            //Debug.Log("started calling flood");
             var dim = new Vector2Int(mask.width, mask.height);
             Graphics.Blit(mask, JFA_Mask);
             
@@ -114,10 +114,13 @@ namespace Niantic.Lightship.AR.Samples
             compute.Dispatch(0, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed init");
             
-            compute.SetInt("offset", 3);
+            compute.SetInt("offset", 4);
             compute.SetTexture(1, "Result", JFA_Mask);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed step 1");
+            
+            compute.SetInt("offset", 3);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             
             compute.SetInt("offset", 2);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);

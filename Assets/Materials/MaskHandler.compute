@@ -29,43 +29,34 @@ void JFA_Crawl(uint3 id : SV_DispatchThreadID)
         uint2(id.x - offset, id.y), uint2(id.x, id.y), uint2(id.x, id.y + offset),
         uint2(id.x - offset, id.y + offset), uint2(id.x, id.y + offset), uint2(id.x + offset, id.y + offset)
         };
-    /*
-    uint2 s1 = uint2(id.x - 3, id.y - 3);
-    uint2 s2 = uint2(id.x, id.y - 3);
-    uint2 s3 = uint2(id.x + 3, id.y - 3);
-    uint2 s4 = uint2(id.x - 3, id.y);
-    uint2 s5 = uint2(id.x, id.y);   //our pixel
-    uint2 s6 = uint2(id.x, id.y + 3);
-    uint2 s7 = uint2(id.x - 3, id.y + 3);
-    uint2 s8 = uint2(id.x, id.y + 3);
-    uint2 s9 = uint2(id.x + 3, id.y + 3);
-    */
+    
     int _id = -1;
-    float _max = -1000000000;
+    float _max = 1000000000;
     
     for (int a =0; a<9; a++)
     {
+        //pixel we're evaluating
         const uint2 pix = pixels[a];
-        float4 val = Result[pix];
-        
+        //the uv stored in pixel
+        float2 val = Result[pix].xy;    
+        //make sure the uv is nonzero
         if (length(val) == 0)
             continue;
-
-        float2 _uv = val.xy * texelSize;
-        float _dist = distance(uv, _uv);
-        
+        //calculate the distance between us and the uv of stored pixel
+        float _dist = distance(uv, val);
+        //shortest distance evaluation
         if (_dist < _max)
         {
             _max = _dist;
             _id = a;
         }
     }
-    Result[uint2(id.x, offset * 20)] = float4(1, 0, 0, 1);
+    
     if (_id < 0)
         return;
-    float2 closest = pixels[_id] * texelSize;
+    float2 closest = Result[pixels[_id]].xy;
     Result[id.xy] = float4(closest, 0, 1);
-    
+    //Result[uint2(id.x, offset * 20)] = float4(1, 0, 0, 1);
     //Result[id.xy] = Result[id.xy];
 }
 
