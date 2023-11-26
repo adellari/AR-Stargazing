@@ -50,6 +50,7 @@ Shader "Unlit/SkyboxQuad"
 
             fixed3 bilinearSample(fixed2 texcoord, fixed2 dim)
             {
+                //we sample the low res texture with uvs of the higher res one + offset based on texel of the low res
                 fixed3 result;
                 fixed2 pix = texcoord * dim.x + 0.5;
                 fixed2 fract = frac(pix);
@@ -83,7 +84,7 @@ Shader "Unlit/SkyboxQuad"
             {
 
                 float2 s_uv = float2(i.texcoord.xy / i.texcoord.z);
-                fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw);
+                fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw); //pass the current uv and size of the main texture
                 //fixed4 confidence = tex2D(_SemanticMask, s_uv);
                 float mask = confidence.r;
                 mask = step(0.1, mask);
