@@ -57,7 +57,7 @@ void JFA_Crawl(uint3 id : SV_DispatchThreadID)
     float2 closest = Result[pixels[_id]].xy;
     Result[id.xy] = float4(closest, 0, 1);
     //Result[uint2(id.x, offset * 20)] = float4(1, 0, 0, 1);
-    //Result[id.xy] = Result[id.xy];
+    
 }
 
 
