@@ -23,7 +23,8 @@ namespace Niantic.Lightship.AR.Samples
         [SerializeField] Material m_Material;
         // The rendering Unity camera
         private Camera m_camera;
-
+        private float tanFov;
+        
         public Texture _texture;
         public Matrix4x4 displayMatrix;
         private bool segmentationReady = false;
@@ -109,6 +110,8 @@ namespace Niantic.Lightship.AR.Samples
                 m_RawImage2.material.SetTexture("_SemanticMask", _texture);
                 m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
                 m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+                m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
+                m_RawImage2.material.SetFloat("_TanFov", tanFov);
             }
             
         }
@@ -186,6 +189,7 @@ namespace Niantic.Lightship.AR.Samples
             var aspect = Mathf.Max(m_camera.pixelWidth, m_camera.pixelHeight) /
                          (float)Mathf.Min(m_camera.pixelWidth, m_camera.pixelHeight);
 
+            tanFov = Mathf.Tan(Mathf.Deg2Rad * m_camera.fieldOfView / 2.0f);
             Debug.Log($"Updating screen orientation, width: {m_camera.pixelWidth}, height: {m_camera.pixelHeight}");
             // Determine the raw image rectSize preserving the texture aspect ratio, matching the screen orientation,
             // and keeping a minimum dimension size.

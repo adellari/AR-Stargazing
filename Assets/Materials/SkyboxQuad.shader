@@ -43,6 +43,9 @@ Shader "Unlit/SkyboxQuad"
             float4x4 _InverseViewMatrix;
             float4x4 _DisplayMatrix;
 
+            float _AspectRatio;
+            float _TanFov;
+            
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
                 return a * (1 - t) + b * t;
@@ -88,12 +91,15 @@ Shader "Unlit/SkyboxQuad"
                 //fixed4 confidence = tex2D(_SemanticMask, s_uv);
                 float mask = confidence.r;
                 mask = step(0.1, mask);
+
                 i.uv = i.uv * 2.0 - 1.0;
+                i.uv.x *= _AspectRatio * _TanFov;
+                i.uv.y *= _TanFov;
                 float4 posOnCam = float4(i.uv, -1, 0);
 
                 float3 camRayWorld = mul(_InverseViewMatrix, posOnCam);
-                camRayWorld = float3(camRayWorld.x * 0.5, camRayWorld.y * 1.6, camRayWorld.z);
-                
+                camRayWorld = float3(camRayWorld.x, camRayWorld.y, camRayWorld.z);
+                camRayWorld = normalize(camRayWorld);
                     
                 // sample the texture
                 fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, 1);
