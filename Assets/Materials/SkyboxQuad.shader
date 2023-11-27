@@ -91,14 +91,8 @@ Shader "Unlit/SkyboxQuad"
                 i.uv = i.uv * 2.0 - 1.0;
                 float4 posOnCam = float4(i.uv, -1, 0);
 
-                /*
-                float3 forward = float3(0, 0, -1);
-                float3 up = float3(0, 1, 0);
-                float3 right = float3(1, 0, 0);
-
-                float3 camRayDir = forward + right * i.uv.x + up * i.uv.y;
-                */
                 float3 camRayWorld = mul(_InverseViewMatrix, posOnCam);
+                camRayWorld = float3(camRayWorld.x * 0.5, camRayWorld.y * 1.6, camRayWorld.z);
                 
                     
                 // sample the texture
