@@ -75,7 +75,7 @@ Shader "Unlit/SkyboxQuad"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.texcoord * 2.0 - 1.0;
+                o.uv = v.texcoord;
                 o.texcoord = mul(_DisplayMatrix, float4(v.texcoord, 1.0f, 1.0f)).xyz;
                 return o;
             }
@@ -88,17 +88,22 @@ Shader "Unlit/SkyboxQuad"
                 //fixed4 confidence = tex2D(_SemanticMask, s_uv);
                 float mask = confidence.r;
                 mask = step(0.1, mask);
-                
+                i.uv = i.uv * 2.0 - 1.0;
+                float4 posOnCam = float4(i.uv, -1, 0);
 
+                /*
                 float3 forward = float3(0, 0, -1);
                 float3 up = float3(0, 1, 0);
                 float3 right = float3(1, 0, 0);
 
                 float3 camRayDir = forward + right * i.uv.x + up * i.uv.y;
-                float3 camRayWorld = mul((float3x3)_InverseViewMatrix, camRayDir);
+                */
+                float3 camRayWorld = mul(_InverseViewMatrix, posOnCam);
                 
+                    
                 // sample the texture
-                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, confidence.r);
+                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, 1);
+                //fixed4 col = fixed4(abs(i.uv), 0, 1);
                 //col = fixed4(confidence.rgb, 0.4f);
                 return col;
             }

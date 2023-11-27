@@ -202,7 +202,7 @@ public class AstroCompass : MonoBehaviour
         Matrix4x4 camToWorld = Camera.main.cameraToWorldMatrix;
 
         debugQuad.rectTransform.sizeDelta = screenRect;
-        debugQuad.material.SetMatrix("_InverseViewMatrix", camToWorld);
+        //debugQuad.material.SetMatrix("_InverseViewMatrix", camToWorld);
         //debugQuad.material.SetTexture("_SemanticMask", semanticObj._texture);
         //debugQuad.material.SetMatrix("_DisplayMatrix", semanticObj.displayMatrix);
         

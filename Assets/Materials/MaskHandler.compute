@@ -41,7 +41,6 @@ void Bilinear_Sample(uint3 id : SV_DispatchThreadID)
     float2 pixel = float2(id.xy) + 0.5;
     float2 fract = frac(pixel);
     
-    float3 result;
     float2 halfTexel = texelSize2 / 2;
 
     float4 tl = Texture.SampleLevel(TexLinearClampSampler, uv - halfTexel, 0);
@@ -114,7 +113,7 @@ void JFA_DistanceField(uint3 id : SV_DispatchThreadID)
         Result[id.xy] = float4(0, 0, 0, 0);
     else
     {
-        float dist = 1 - (distance(uv, pix) / (texelSize * maxCrawl * 2));
+        float dist = 1 - (distance(uv, pix) / (texelSize.x * maxCrawl * 2));
         Result[id.xy] = float4(dist, dist, dist, dist);
     }
     

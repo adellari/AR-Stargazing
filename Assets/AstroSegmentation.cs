@@ -30,6 +30,8 @@ namespace Niantic.Lightship.AR.Samples
 
         [Header("Compute")] 
         [SerializeField] private RenderTexture JFA_Mask;
+
+        [SerializeField] private RenderTexture scaledSegmentation;
         [SerializeField] private ComputeShader compute;
 
 
@@ -38,7 +40,7 @@ namespace Niantic.Lightship.AR.Samples
 
             // Acquire a reference to the rendering camera
             m_camera = Camera.main;
-            segmentationManager = Camera.main.GetComponent<ARSemanticSegmentationManager>();
+            segmentationManager = m_camera.GetComponent<ARSemanticSegmentationManager>();
 
             segmentationManager.MetadataInitialized += OnSemanticModelReady;
             
@@ -82,11 +84,7 @@ namespace Niantic.Lightship.AR.Samples
 
                 m_RawImage.texture = _texture;
                 
-                m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-                m_RawImage.material.SetTexture("_SemanticTex", _texture);
-                m_RawImage2.texture = _texture;
-                m_RawImage2.material.SetTexture("_SemanticMask", _texture);
-                m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
+                
 
                 if (!JFA_Mask)
                 {
@@ -94,13 +92,38 @@ namespace Niantic.Lightship.AR.Samples
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
+                    
+                    /*
+                    scaledSegmentation = new RenderTexture(m_camera.pixelHeight, m_camera.pixelWidth, 0);
+                    scaledSegmentation.enableRandomWrite = true;
+                    scaledSegmentation.Create();
+                    */
                     Debug.Log($"created mask render texture, initial dimensions {_texture.width} by {_texture.height}, with {_texture.mipmapCount} mip levels");
                 }
                 //Debug.Log("about to dispatch flood");
-                DispatchFlood(_texture);
-
+                //DispatchFlood(_texture);
+                //DispatchBilinear(_texture);
+                m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
+                m_RawImage.material.SetTexture("_SemanticTex", _texture);
+                m_RawImage2.texture = _texture;
+                m_RawImage2.material.SetTexture("_SemanticMask", _texture);
+                m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
+                m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
             }
             
+        }
+
+        void DispatchBilinear(Texture mask)
+        {
+            var dim1 = new Vector2Int(mask.width, mask.height);
+            var dim2 = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
+
+            compute.SetTexture(3, "Result", scaledSegmentation);
+            compute.SetTexture(3, "Texture", _texture);
+            compute.SetVector("TexSize", new Vector2(dim1.x, dim1.y));
+            compute.SetVector("TexSize2", new Vector2(dim2.y, dim2.x));
+            compute.Dispatch(3, dim2.y/8, dim2.x/8, 1);
+            m_maskImage.texture = scaledSegmentation;
         }
 
         void DispatchFlood(Texture mask)
@@ -163,6 +186,7 @@ namespace Niantic.Lightship.AR.Samples
             var aspect = Mathf.Max(m_camera.pixelWidth, m_camera.pixelHeight) /
                          (float)Mathf.Min(m_camera.pixelWidth, m_camera.pixelHeight);
 
+            Debug.Log($"Updating screen orientation, width: {m_camera.pixelWidth}, height: {m_camera.pixelHeight}");
             // Determine the raw image rectSize preserving the texture aspect ratio, matching the screen orientation,
             // and keeping a minimum dimension size.
             float minDimension = m_camera.pixelWidth;
@@ -189,6 +213,9 @@ namespace Niantic.Lightship.AR.Samples
         void OnApplicationQuit()
         {
             if(JFA_Mask)
+                JFA_Mask.Release();
+
+            if (scaledSegmentation)
                 JFA_Mask.Release();
         }
     }
