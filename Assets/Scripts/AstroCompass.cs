@@ -24,6 +24,7 @@ public class AstroCompass : MonoBehaviour
     private Vector3 lastForward;
 
     public RawImage debugQuad;
+    public RawImage debugQuad2;
     public AstroSegmentation semanticObj;
 
     public IEnumerator Start()
@@ -202,10 +203,11 @@ public class AstroCompass : MonoBehaviour
         Matrix4x4 camToWorld = Camera.main.cameraToWorldMatrix;
 
         debugQuad.rectTransform.sizeDelta = screenRect;
+        debugQuad2.rectTransform.sizeDelta = screenRect;
         //debugQuad.material.SetMatrix("_InverseViewMatrix", camToWorld);
         //debugQuad.material.SetTexture("_SemanticMask", semanticObj._texture);
         //debugQuad.material.SetMatrix("_DisplayMatrix", semanticObj.displayMatrix);
-        
+
     }
 
     // Update is called once per frame

@@ -102,7 +102,7 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = normalize(camRayWorld);
                     
                 // sample the texture
-                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, 1);
+                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, confidence.r);
                 //fixed4 col = fixed4(abs(i.uv), 0, 1);
                 //col = fixed4(confidence.rgb, 0.4f);
                 return col;

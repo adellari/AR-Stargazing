@@ -496,7 +496,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &385829127
 RectTransform:
   m_ObjectHideFlags: 0
@@ -506,16 +506,16 @@ RectTransform:
   m_GameObject: {fileID: 385829126}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10.45, y: 10.45, z: 10.45}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1237521878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 930, y: 1105.8999}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &385829128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -529,7 +529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.5176471}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1102,6 +1102,8 @@ GameObject:
   - component: {fileID: 1375432339}
   - component: {fileID: 1375432340}
   - component: {fileID: 1375432341}
+  - component: {fileID: 1375432343}
+  - component: {fileID: 1375432342}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1337,6 +1339,7 @@ MonoBehaviour:
   debugBall: {fileID: 1934597062}
   skyBoxCam: {fileID: 18354456}
   debugQuad: {fileID: 1616651189}
+  debugQuad2: {fileID: 385829128}
   semanticObj: {fileID: 1375432340}
 --- !u!114 &1375432340
 MonoBehaviour:
@@ -1355,7 +1358,8 @@ MonoBehaviour:
   m_RawImage2: {fileID: 1616651189}
   m_maskImage: {fileID: 385829128}
   m_Material: {fileID: 2100000, guid: 10b10153344b643e9b0f91cfba0281bc, type: 2}
-  _texture: {fileID: 0}
+  _skyTexture: {fileID: 0}
+  _groundTexture: {fileID: 0}
   displayMatrix:
     e00: 0
     e01: 0
@@ -1389,6 +1393,45 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _targetFrameRate: 20
+--- !u!114 &1375432342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1375432332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11aa8f461d05f45f68d7b81ed08f1f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetFrameRate: 20
+  _optimalOcclusionDistanceMode: 0
+  _principalOccludee: {fileID: 0}
+  _isOcclusionSuppressionEnabled: 0
+  _semanticSegmentationManager: {fileID: 0}
+  _suppressionChannels: []
+  _isOcclusionStabilizationEnabled: 0
+  _meshManager: {fileID: 0}
+  _useCustomBackgroundMaterial: 0
+  _customBackgroundMaterial: {fileID: 0}
+--- !u!114 &1375432343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1375432332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b15f82cc229284894964d2d30806969d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HumanSegmentationStencilMode: 0
+  m_HumanSegmentationDepthMode: 0
+  m_EnvironmentDepthMode: 1
+  m_EnvironmentDepthTemporalSmoothing: 1
+  m_OcclusionPreferenceMode: 0
 --- !u!1 &1467859536
 GameObject:
   m_ObjectHideFlags: 0

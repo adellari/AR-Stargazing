@@ -25,7 +25,8 @@ namespace Niantic.Lightship.AR.Samples
         private Camera m_camera;
         private float tanFov;
         
-        public Texture _texture;
+        public Texture _skyTexture;
+        public Texture _groundTexture;
         public Matrix4x4 displayMatrix;
         private bool segmentationReady = false;
 
@@ -81,37 +82,41 @@ namespace Niantic.Lightship.AR.Samples
 
             if (segmentationReady)
             {
-                _texture = segmentationManager.GetSemanticChannelTexture("artificial_ground", out displayMatrix, viewport);
-
-                m_RawImage.texture = _texture;
+                _skyTexture = segmentationManager.GetSemanticChannelTexture("sky", out displayMatrix, viewport);
+                _groundTexture = segmentationManager.GetSemanticChannelTexture("ground", out displayMatrix, viewport);
+                m_RawImage.texture = _skyTexture;
                 
                 
 
                 if (!JFA_Mask)
                 {
-                    var dim = new Vector2Int(_texture.width, _texture.height);
+                    var dim = new Vector2Int(_skyTexture.width, _skyTexture.height);
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
                     
-                    /*
-                    scaledSegmentation = new RenderTexture(m_camera.pixelHeight, m_camera.pixelWidth, 0);
+                    
+                    scaledSegmentation = new RenderTexture(m_camera.pixelWidth, m_camera.pixelHeight, 0);
                     scaledSegmentation.enableRandomWrite = true;
                     scaledSegmentation.Create();
-                    */
-                    Debug.Log($"created mask render texture, initial dimensions {_texture.width} by {_texture.height}, with {_texture.mipmapCount} mip levels");
+                    
+                    Debug.Log($"created mask render texture, initial dimensions {_skyTexture.width} by {_skyTexture.height}, with {_skyTexture.mipmapCount} mip levels");
                 }
                 //Debug.Log("about to dispatch flood");
-                //DispatchFlood(_texture);
-                //DispatchBilinear(_texture);
+                
+                DispatchBilinear(_groundTexture);
+                //DispatchFlood(scaledSegmentation);
+                
                 m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-                m_RawImage.material.SetTexture("_SemanticTex", _texture);
-                m_RawImage2.texture = _texture;
-                m_RawImage2.material.SetTexture("_SemanticMask", _texture);
+                m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
+                /*
+                m_RawImage2.texture = _groundTexture;
+                m_RawImage2.material.SetTexture("_SemanticMask", _groundTexture);
                 m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
                 m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
                 m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
                 m_RawImage2.material.SetFloat("_TanFov", tanFov);
+                */
             }
             
         }
@@ -122,10 +127,11 @@ namespace Niantic.Lightship.AR.Samples
             var dim2 = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
 
             compute.SetTexture(3, "Result", scaledSegmentation);
-            compute.SetTexture(3, "Texture", _texture);
-            compute.SetVector("TexSize", new Vector2(dim1.x, dim1.y));
-            compute.SetVector("TexSize2", new Vector2(dim2.y, dim2.x));
-            compute.Dispatch(3, dim2.y/8, dim2.x/8, 1);
+            compute.SetTexture(3, "Texture", _groundTexture);
+            compute.SetVector("TexSize", new Vector2(dim2.x, dim2.y));
+            compute.SetVector("TexSize2", new Vector2(dim1.x, dim1.y));
+            compute.SetMatrix("_displayMatrix", displayMatrix);
+            compute.Dispatch(3, dim2.x/8, dim2.y/8, 1);
             m_maskImage.texture = scaledSegmentation;
         }
 
@@ -135,27 +141,30 @@ namespace Niantic.Lightship.AR.Samples
             var dim = new Vector2Int(mask.width, mask.height);
             Graphics.Blit(mask, JFA_Mask);
 
-            compute.SetInt("maxCrawl", 8);
+            compute.SetInt("maxCrawl", 16);
             compute.SetTexture(0, "Result", JFA_Mask);
             compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
             compute.Dispatch(0, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed init");
             
-            compute.SetInt("offset", 8);
+            compute.SetInt("offset", 16);
             compute.SetTexture(1, "Result", JFA_Mask);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed step 1");
             
-            compute.SetInt("offset", 4);
+            compute.SetInt("offset", 8);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             
-            compute.SetInt("offset", 2);
+            compute.SetInt("offset", 4);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed step 2");
             
-            compute.SetInt("offset", 1);
+            compute.SetInt("offset", 2);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully finished JFA");
+            
+            compute.SetInt("offset", 1);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             
             compute.SetTexture(2, "Result", JFA_Mask);
             compute.Dispatch(2, dim.x/8, dim.y/8, 1);
