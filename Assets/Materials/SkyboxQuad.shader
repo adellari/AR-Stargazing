@@ -29,7 +29,7 @@ Shader "Unlit/SkyboxQuad"
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float3 texcoord : TEXCOORD1;
+                float2 texcoord : TEXCOORD1;
             };
 
             samplerCUBE _MainTex;
@@ -79,16 +79,17 @@ Shader "Unlit/SkyboxQuad"
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.texcoord;
-                o.texcoord = mul(_DisplayMatrix, float4(v.texcoord, 1.0f, 1.0f)).xyz;
+                o.texcoord = v.texcoord;
+                //o.texcoord = mul(_DisplayMatrix, float4(v.texcoord, 1.0f, 1.0f)).xyz;
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
 
-                float2 s_uv = float2(i.texcoord.xy / i.texcoord.z);
-                fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw); //pass the current uv and size of the main texture
-                //fixed4 confidence = tex2D(_SemanticMask, s_uv);
+                float2 s_uv = i.texcoord;//float2(i.texcoord.xy / i.texcoord.z);
+                //fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw); //pass the current uv and size of the main texture
+                fixed4 confidence = tex2D(_SemanticMask, s_uv);
                 float mask = confidence.r;
                 mask = step(0.1, mask);
 

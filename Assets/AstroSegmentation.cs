@@ -105,18 +105,18 @@ namespace Niantic.Lightship.AR.Samples
                 //Debug.Log("about to dispatch flood");
                 
                 DispatchBilinear(_groundTexture);
-                //DispatchFlood(scaledSegmentation);
+                DispatchFlood(scaledSegmentation);
                 
                 m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
                 m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
-                /*
-                m_RawImage2.texture = _groundTexture;
-                m_RawImage2.material.SetTexture("_SemanticMask", _groundTexture);
+                
+                m_RawImage2.texture = JFA_Mask;
+                m_RawImage2.material.SetTexture("_SemanticMask", JFA_Mask);
                 m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
                 m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
                 m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
                 m_RawImage2.material.SetFloat("_TanFov", tanFov);
-                */
+                
             }
             
         }
