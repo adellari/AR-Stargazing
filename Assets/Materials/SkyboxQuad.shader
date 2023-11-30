@@ -45,6 +45,7 @@ Shader "Unlit/SkyboxQuad"
 
             float _AspectRatio;
             float _TanFov;
+            float _confidenceThresh;
             
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
@@ -87,11 +88,12 @@ Shader "Unlit/SkyboxQuad"
             fixed4 frag (v2f i) : SV_Target
             {
 
-                float2 s_uv = i.texcoord;//float2(i.texcoord.xy / i.texcoord.z);
+                float2 s_uv = i.texcoord;
+                //float2 s_uv = float2(i.texcoord.xy / i.texcoord.z);
                 //fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw); //pass the current uv and size of the main texture
                 fixed4 confidence = tex2D(_SemanticMask, s_uv);
-                float mask = confidence.r;
-                mask = step(0.1, mask);
+                //float mask = confidence.r;
+                //mask = step(_confidenceThresh, mask);
 
                 i.uv = i.uv * 2.0 - 1.0;
                 i.uv.x *= _AspectRatio * _TanFov;
@@ -103,7 +105,7 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = normalize(camRayWorld);
                     
                 // sample the texture
-                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, confidence.r);
+                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, max(confidence.r + confidence.a, 1)) * confidence.a;
                 //fixed4 col = fixed4(abs(i.uv), 0, 1);
                 //col = fixed4(confidence.rgb, 0.4f);
                 return col;

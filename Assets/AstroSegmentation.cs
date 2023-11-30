@@ -29,14 +29,38 @@ namespace Niantic.Lightship.AR.Samples
         public Texture _groundTexture;
         public Matrix4x4 displayMatrix;
         private bool segmentationReady = false;
-
+        private RenderTexture _previousFrame;
+        
         [Header("Compute")] 
         [SerializeField] private RenderTexture JFA_Mask;
 
         [SerializeField] private RenderTexture scaledSegmentation;
         [SerializeField] private ComputeShader compute;
 
+        [SerializeField] private Toggle JFA_toggle;
+        private bool JFA_enabled = true;
+        private float JFA_smoothing = 0.02927906f;
+        private float JFA_exp = 1.267775f;
+        private float confidenceThresh = 0.16f;
+        
 
+        public void onToggleChange(bool val)
+        {
+            JFA_enabled = val;
+        }
+
+        public void onThresholdChange(float val)
+        {
+            confidenceThresh = val;
+            Debug.Log($"set the threshold value to {confidenceThresh}");
+        }
+
+        public void onSmoothingChange(float val)
+        {
+            JFA_exp = val;
+            Debug.Log($"set the exp value to {JFA_exp}");
+        }
+            
         void Awake()
         {
 
@@ -90,7 +114,8 @@ namespace Niantic.Lightship.AR.Samples
 
                 if (!JFA_Mask)
                 {
-                    var dim = new Vector2Int(_skyTexture.width, _skyTexture.height);
+                    //var dim = new Vector2Int(_skyTexture.width, _skyTexture.height);
+                    var dim = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
                     JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
                     JFA_Mask.enableRandomWrite = true;
                     JFA_Mask.Create();
@@ -105,13 +130,14 @@ namespace Niantic.Lightship.AR.Samples
                 //Debug.Log("about to dispatch flood");
                 
                 DispatchBilinear(_groundTexture);
-                DispatchFlood(scaledSegmentation);
+                if(JFA_enabled)
+                    DispatchFlood(scaledSegmentation);
                 
                 m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
                 m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
                 
-                m_RawImage2.texture = JFA_Mask;
-                m_RawImage2.material.SetTexture("_SemanticMask", JFA_Mask);
+                m_RawImage2.texture = scaledSegmentation;
+                m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
                 m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
                 m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
                 m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
@@ -128,11 +154,12 @@ namespace Niantic.Lightship.AR.Samples
 
             compute.SetTexture(3, "Result", scaledSegmentation);
             compute.SetTexture(3, "Texture", _groundTexture);
+            compute.SetFloat("_confidenceThreshold", confidenceThresh);
             compute.SetVector("TexSize", new Vector2(dim2.x, dim2.y));
             compute.SetVector("TexSize2", new Vector2(dim1.x, dim1.y));
             compute.SetMatrix("_displayMatrix", displayMatrix);
             compute.Dispatch(3, dim2.x/8, dim2.y/8, 1);
-            m_maskImage.texture = scaledSegmentation;
+            //m_maskImage.texture = scaledSegmentation;
         }
 
         void DispatchFlood(Texture mask)
@@ -141,14 +168,29 @@ namespace Niantic.Lightship.AR.Samples
             var dim = new Vector2Int(mask.width, mask.height);
             Graphics.Blit(mask, JFA_Mask);
 
-            compute.SetInt("maxCrawl", 16);
+            compute.SetInt("maxCrawl", 64);
+            compute.SetFloat("_jfaSmoothing", JFA_smoothing);
+            compute.SetFloat("_jfaExp", JFA_exp);
+            compute.SetTexture(0, "Texture", scaledSegmentation);
             compute.SetTexture(0, "Result", JFA_Mask);
             compute.SetVector("TexSize", new Vector2(dim.x, dim.y));
             compute.Dispatch(0, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed init");
+            compute.SetTexture(1, "Result", JFA_Mask);
+            
+            /*
+            compute.SetInt("offset", 128);
+            
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
+            */
+            
+            compute.SetInt("offset", 64);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
+            
+            compute.SetInt("offset", 32);
+            compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             
             compute.SetInt("offset", 16);
-            compute.SetTexture(1, "Result", JFA_Mask);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             //Debug.Log("successfully executed step 1");
             
@@ -166,28 +208,12 @@ namespace Niantic.Lightship.AR.Samples
             compute.SetInt("offset", 1);
             compute.Dispatch(1, dim.x/8, dim.y/8, 1);
             
-            compute.SetTexture(2, "Result", JFA_Mask);
+            compute.SetTexture(2, "Texture", JFA_Mask);
+            compute.SetTexture(2, "Result", scaledSegmentation);
             compute.Dispatch(2, dim.x/8, dim.y/8, 1);
             m_maskImage.texture = JFA_Mask;
         }
-
-
-
-        private static void BuildTextureInfo(StringBuilder stringBuilder, string textureName, Texture2D texture)
-        {
-            stringBuilder.AppendLine($"texture : {textureName}");
-            if (texture == null)
-            {
-                stringBuilder.AppendLine("   <null>");
-            }
-            else
-            {
-                stringBuilder.AppendLine($"   format : {texture.format}");
-                stringBuilder.AppendLine($"   width  : {texture.width}");
-                stringBuilder.AppendLine($"   height : {texture.height}");
-                stringBuilder.AppendLine($"   mipmap : {texture.mipmapCount}");
-            }
-        }
+        
         
 
         private void UpdateRawImage()
@@ -229,7 +255,7 @@ namespace Niantic.Lightship.AR.Samples
                 JFA_Mask.Release();
 
             if (scaledSegmentation)
-                JFA_Mask.Release();
+                scaledSegmentation.Release();
         }
     }
 
