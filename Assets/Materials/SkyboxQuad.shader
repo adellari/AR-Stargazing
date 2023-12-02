@@ -36,6 +36,9 @@ Shader "Unlit/SkyboxQuad"
             float4 _MainTex_ST;
             float4 _MainTex_TexelSize;
 
+            sampler2D _DepthMask;
+            float4 _DepthMask_ST;
+            
             sampler2D _SemanticMask;
             float4 _SemanticMask_ST;
             float4 _SemanticMask_TexelSize;

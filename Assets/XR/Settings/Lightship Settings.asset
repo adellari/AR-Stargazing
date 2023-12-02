@@ -18,7 +18,7 @@ MonoBehaviour:
   _preferLidarIfAvailable: 1
   _useLightshipPersistentAnchor: 1
   _useLightshipSemanticSegmentation: 1
-  _useLightshipScanning: 0
+  _useLightshipScanning: 1
   _overrideLoggingLevel: 0
   _logLevel: 3
   _devicePlaybackSettings:

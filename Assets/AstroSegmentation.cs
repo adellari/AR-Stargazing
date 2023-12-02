@@ -1,9 +1,9 @@
 using System.Linq;
 using Niantic.Lightship.AR.Semantics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARSubsystems;
-using System.Text;
 using UnityEngine.XR.ARFoundation;
 
 namespace Niantic.Lightship.AR.Samples
@@ -13,6 +13,7 @@ namespace Niantic.Lightship.AR.Samples
 
         const string k_DisplayMatrixName = "DisplayMatrix";
         public ARSemanticSegmentationManager segmentationManager;
+        public AROcclusionManager occlusionManager;
         private readonly int k_DisplayMatrix = Shader.PropertyToID(k_DisplayMatrixName);
 
         protected ScreenOrientation m_CurrentScreenOrientation;
@@ -27,17 +28,18 @@ namespace Niantic.Lightship.AR.Samples
         
         public Texture _skyTexture;
         public Texture _groundTexture;
-        public Matrix4x4 displayMatrix;
+        public Matrix4x4 displayMatrix; //needs to be transposed on android
+        private Matrix4x4 _displayMatrix;
         private bool segmentationReady = false;
         private RenderTexture _previousFrame;
-        
+        private XRCpuImage? _depthImage;
+            
         [Header("Compute")] 
         [SerializeField] private RenderTexture JFA_Mask;
 
         [SerializeField] private RenderTexture scaledSegmentation;
         [SerializeField] private ComputeShader compute;
-
-        [SerializeField] private Toggle JFA_toggle;
+        
         private bool JFA_enabled = true;
         private float JFA_smoothing = 0.02927906f;
         private float JFA_exp = 1.267775f;
@@ -66,8 +68,8 @@ namespace Niantic.Lightship.AR.Samples
 
             // Acquire a reference to the rendering camera
             m_camera = Camera.main;
-            segmentationManager = m_camera.GetComponent<ARSemanticSegmentationManager>();
-
+            segmentationManager = m_camera.GetComponent<ARSemanticSegmentationManager>()?? m_camera.AddComponent<ARSemanticSegmentationManager>();
+            //occlusionManager = m_camera.GetComponent<AROcclusionManager>() ?? m_camera.AddComponent<AROcclusionManager>();
             segmentationManager.MetadataInitialized += OnSemanticModelReady;
             
 
@@ -77,7 +79,18 @@ namespace Niantic.Lightship.AR.Samples
 
         void OnEnable()
         {
+            m_camera.GetComponent<ARCameraManager>().frameReceived += OnFrameReceived;
             UpdateRawImage();
+        }
+
+        void OnDisable()
+        {
+            m_camera.GetComponent<ARCameraManager>().frameReceived -= OnFrameReceived;
+        }
+
+        void OnFrameReceived(ARCameraFrameEventArgs args)
+        {
+            _displayMatrix = args.displayMatrix ?? Matrix4x4.identity;
         }
 
         private void OnSemanticModelReady(ARSemanticSegmentationModelEventArgs args)
@@ -96,7 +109,6 @@ namespace Niantic.Lightship.AR.Samples
 
             // Update the image
             var sizeDelta = m_RawImage.rectTransform.sizeDelta;
-
             var viewport = new XRCameraParams
             {
                 screenWidth = (int)(sizeDelta.x), 
@@ -104,46 +116,76 @@ namespace Niantic.Lightship.AR.Samples
                 screenOrientation = m_CurrentScreenOrientation
             };
 
-            if (segmentationReady)
+            if (!segmentationReady)
+                return;
+
+            
+            _skyTexture = segmentationManager.GetSemanticChannelTexture("sky", out displayMatrix, viewport);
+            _groundTexture = segmentationManager.GetSemanticChannelTexture("ground", out displayMatrix, viewport);
+            //m_RawImage.texture = _skyTexture;
+            
+            
+
+            if (!JFA_Mask || scaledSegmentation == null)
             {
-                _skyTexture = segmentationManager.GetSemanticChannelTexture("sky", out displayMatrix, viewport);
-                _groundTexture = segmentationManager.GetSemanticChannelTexture("ground", out displayMatrix, viewport);
-                m_RawImage.texture = _skyTexture;
+                //var dim = new Vector2Int(_skyTexture.width, _skyTexture.height);
+                var dim = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
+                JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
+                JFA_Mask.enableRandomWrite = true;
+                JFA_Mask.Create();
                 
+                
+                scaledSegmentation = new RenderTexture(m_camera.pixelWidth, m_camera.pixelHeight, 0);
+                scaledSegmentation.enableRandomWrite = true;
+                scaledSegmentation.Create();
+                
+                Debug.Log($"created mask render texture, initial dimensions {_skyTexture.width} by {_skyTexture.height}, with {_skyTexture.mipmapCount} mip levels");
+            }
+            //Debug.Log("about to dispatch flood");
+            
+            DispatchBilinear(_groundTexture);
+            if(JFA_enabled)
+                DispatchFlood(scaledSegmentation);
+            
+            //m_RawImage.material.SetMatrix("_displayMat", displayMatrix);
+
+            if (occlusionManager.subsystem.running)
+            {
+                if (occlusionManager.TryAcquireEnvironmentDepthCpuImage(out var cpuImage))
+                {
+                    _depthImage?.Dispose();
+                    _depthImage = cpuImage;
+                    Debug.Log("acquired cpu image");
+                }
+                else
+                {
+                    Debug.Log("could not acquire cpu image");
+                }
+                
+                m_RawImage.texture = occlusionManager.environmentDepthTexture;
+                //occlusionManager.TryAcquireEnvironmentDepthCpuImage(out )
+                m_RawImage.material.SetTexture("_DepthTex", occlusionManager.environmentDepthTexture);
+                m_RawImage.material.SetMatrix("_displayMat", _displayMatrix);
+            }
+            else
+            {
+                Debug.Log("occlusion subsystem is NOT running");
+            }
+                
+            
+            //m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
+            //m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
+            
+            m_RawImage2.texture = scaledSegmentation;
+            m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
+            m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
+            m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+            m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
+            m_RawImage2.material.SetFloat("_TanFov", tanFov);
+            
                 
 
-                if (!JFA_Mask)
-                {
-                    //var dim = new Vector2Int(_skyTexture.width, _skyTexture.height);
-                    var dim = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
-                    JFA_Mask = new RenderTexture(dim.x, dim.y, 0);
-                    JFA_Mask.enableRandomWrite = true;
-                    JFA_Mask.Create();
-                    
-                    
-                    scaledSegmentation = new RenderTexture(m_camera.pixelWidth, m_camera.pixelHeight, 0);
-                    scaledSegmentation.enableRandomWrite = true;
-                    scaledSegmentation.Create();
-                    
-                    Debug.Log($"created mask render texture, initial dimensions {_skyTexture.width} by {_skyTexture.height}, with {_skyTexture.mipmapCount} mip levels");
-                }
-                //Debug.Log("about to dispatch flood");
-                
-                DispatchBilinear(_groundTexture);
-                if(JFA_enabled)
-                    DispatchFlood(scaledSegmentation);
-                
-                m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-                m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
-                
-                m_RawImage2.texture = scaledSegmentation;
-                m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
-                m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
-                m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
-                m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
-                m_RawImage2.material.SetFloat("_TanFov", tanFov);
-                
-            }
+            
             
         }
 
@@ -160,6 +202,7 @@ namespace Niantic.Lightship.AR.Samples
             compute.SetMatrix("_displayMatrix", displayMatrix);
             compute.Dispatch(3, dim2.x/8, dim2.y/8, 1);
             //m_maskImage.texture = scaledSegmentation;
+            //Debug.Log("successfully dispatched bilinear");
         }
 
         void DispatchFlood(Texture mask)
@@ -211,7 +254,7 @@ namespace Niantic.Lightship.AR.Samples
             compute.SetTexture(2, "Texture", JFA_Mask);
             compute.SetTexture(2, "Result", scaledSegmentation);
             compute.Dispatch(2, dim.x/8, dim.y/8, 1);
-            m_maskImage.texture = JFA_Mask;
+            //m_maskImage.texture = JFA_Mask;
         }
         
         
@@ -246,7 +289,7 @@ namespace Niantic.Lightship.AR.Samples
 
             // Update the raw image dimensions and the raw image material parameters.
             m_RawImage.rectTransform.sizeDelta = rectSize;
-            m_RawImage.material = m_Material;
+            //m_RawImage.material = m_Material;
         }
 
         void OnApplicationQuit()
