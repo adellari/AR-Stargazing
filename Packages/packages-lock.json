@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.nianticlabs.lightship": {
-      "version": "file:/Users/mac16/Downloads/ardk-next-3.0.0.tgz",
+      "version": "file:/Users/addyi/Downloads/ardk-upm-3.1.0.tgz",
       "depth": 0,
       "source": "local-tarball",
       "dependencies": {
@@ -187,7 +187,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.arfoundation": {
-      "version": "5.1.0",
+      "version": "5.1.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -205,12 +205,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.arkit": {
-      "version": "5.1.0",
+      "version": "5.1.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.editorcoroutines": "1.0.0",
-        "com.unity.xr.arfoundation": "5.1.0",
+        "com.unity.xr.arfoundation": "5.1.1",
         "com.unity.xr.core-utils": "2.1.0",
         "com.unity.xr.management": "4.0.1"
       },

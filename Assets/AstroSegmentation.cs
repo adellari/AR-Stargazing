@@ -44,7 +44,7 @@ namespace Niantic.Lightship.AR.Samples
         private float JFA_smoothing = 0.02927906f;
         private float JFA_exp = 1.267775f;
         private float confidenceThresh = 0.16f;
-        
+        private float startedTime = 0f;
 
         public void onToggleChange(bool val)
         {
@@ -75,6 +75,7 @@ namespace Niantic.Lightship.AR.Samples
 
             // Get the current screen orientation, and update the raw image UI
             m_CurrentScreenOrientation = Screen.orientation;
+            startedTime = Time.realtimeSinceStartup;
         }
 
         void OnEnable()
@@ -100,6 +101,8 @@ namespace Niantic.Lightship.AR.Samples
 
         void Update()
         {
+            //if (Time.realtimeSinceStartup - startedTime <= 7)     //debug step added to slow down app start
+                //return;
 
             if (m_CurrentScreenOrientation != Screen.orientation)
             {
@@ -151,6 +154,7 @@ namespace Niantic.Lightship.AR.Samples
 
             if (occlusionManager.subsystem.running)
             {
+                /*
                 if (occlusionManager.TryAcquireEnvironmentDepthCpuImage(out var cpuImage))
                 {
                     _depthImage?.Dispose();
@@ -161,9 +165,9 @@ namespace Niantic.Lightship.AR.Samples
                 {
                     Debug.Log("could not acquire cpu image");
                 }
+                */
                 
                 m_RawImage.texture = occlusionManager.environmentDepthTexture;
-                //occlusionManager.TryAcquireEnvironmentDepthCpuImage(out )
                 m_RawImage.material.SetTexture("_DepthTex", occlusionManager.environmentDepthTexture);
                 m_RawImage.material.SetMatrix("_displayMat", _displayMatrix);
             }

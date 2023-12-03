@@ -15,10 +15,10 @@ MonoBehaviour:
   _apiKey: ueyjRlE3u9WMDPXFRj4WdbFTKsm6LAesGXAXZlHZSmR2z0zQtGYiA2EUnabP7asNeyOpCw
   _useLightshipDepth: 1
   _useLightshipMeshing: 0
-  _preferLidarIfAvailable: 1
-  _useLightshipPersistentAnchor: 1
+  _preferLidarIfAvailable: 0
+  _useLightshipPersistentAnchor: 0
   _useLightshipSemanticSegmentation: 1
-  _useLightshipScanning: 1
+  _useLightshipScanning: 0
   _overrideLoggingLevel: 0
   _logLevel: 3
   _devicePlaybackSettings:

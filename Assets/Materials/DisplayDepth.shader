@@ -63,7 +63,7 @@ Shader "Unlit/DisplayDepth"
                 const float scaledDisparity = 1.0f / depth;
                 const float normDisparity = scaledDisparity / MAX_VIEW_DISP;
 
-                return float4(depth,0,0,0.8);
+                return float4(normDisparity,normDisparity,normDisparity,0.8);
             }
             ENDCG
         }

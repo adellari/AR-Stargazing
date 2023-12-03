@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "com.nianticlabs.lightship": "file:/Users/mac16/Downloads/ardk-next-3.0.0.tgz",
+    "com.nianticlabs.lightship": "file:/Users/addyi/Downloads/ardk-upm-3.1.0.tgz",
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.feature.development": "1.0.1",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.6",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualscripting": "1.9.1",
-    "com.unity.xr.arkit": "5.1.0",
+    "com.unity.xr.arkit": "5.1.1",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
