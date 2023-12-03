@@ -4,10 +4,11 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using Niantic.Lightship.AR.Samples;
+using UnityEngine.Serialization;
 
 public class AstroCompass : MonoBehaviour
 {
-    public SkyController dome;
+    public SkyController skyIndicator;
     public bool isLoc = false;
 
     [Header("Debug")]
@@ -29,9 +30,9 @@ public class AstroCompass : MonoBehaviour
 
     public IEnumerator Start()
     {
-        lr = gameObject.AddComponent<LineRenderer>();
-        lr.positionCount = 2;
-        lr.widthMultiplier = 0.03f;
+        //lr = gameObject.AddComponent<LineRenderer>();
+        //lr.positionCount = 2;
+        //lr.widthMultiplier = 0.03f;
 
         Input.location.Start();
         Input.gyro.enabled = true;
@@ -58,26 +59,6 @@ public class AstroCompass : MonoBehaviour
             Debug.LogWarning("Failed initializing location services");
             isLoc = false;
             yield break;
-        }
-        else
-        {
-            /*
-             
-            isLoc = true;
-            altitude = Input.location.lastData.altitude;
-            latitude = Input.location.lastData.latitude;
-
-            if (isLoc)
-            {
-                Az = Input.compass.trueHeading;
-                pAz = Az;
-            }
-                
-            
-            Debug.Log("Azimuth: " + Az);
-            Debug.Log("Successfully obtained geographic data");
-            
-             */
         }
 
         
@@ -136,7 +117,7 @@ public class AstroCompass : MonoBehaviour
         //need to multiply this by another rotation towards our latitudinal angle
         northDir = Quaternion.AngleAxis(Input.location.lastData.latitude, -transform.right) * northDir;
 
-        return northDir * 1000000f;
+        return northDir.normalized;
     }
 
     void GetAltitude()
@@ -215,19 +196,19 @@ public class AstroCompass : MonoBehaviour
     {
         if (isLoc)
         {
-            //polarisDirection = Quaternion.FromToRotation(lastForward, transform.forward) * polarisDirection;
-            //polarisDirection = (transform.rotation * Quaternion.Inverse(lastOrientation)) * polarisDirection;
-            //polarisDirection = NorthVector();
+            var heading = Input.compass.trueHeading;
+            var lat = Input.location.lastData.latitude;
+            
             lastForward = transform.forward;
             lastOrientation = transform.rotation;
 
-            lr.SetPosition(0, transform.forward * 1.1f + transform.position);
-            lr.SetPosition(1, polarisDirection * 5f);
+            //lr.SetPosition(0, transform.forward * 1.1f + transform.position);
+            //lr.SetPosition(1, transform.position + polarisDirection * 50f);
 
             debugBall.position = polarisDirection * 5f;
-            debugText.text = Input.compass.trueHeading.ToString();
+            debugText.text = heading.ToString();
 
-            dome.setNorth(polarisDirection);
+            skyIndicator.alignNorth(heading, lat);
 
             debugText1.text = Input.compass.headingAccuracy.ToString();
             //Debug.Log("set look vector: " + Input.compass.trueHeading);

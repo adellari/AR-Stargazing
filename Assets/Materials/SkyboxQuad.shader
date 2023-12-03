@@ -3,6 +3,8 @@ Shader "Unlit/SkyboxQuad"
     Properties
     {
         [NoScaleOffset] _MainTex ("Cubemap Skybox", Cube) = "white" {}
+        [NoScaleOffset] _Constellations ("Constellation Skybox", Cube) = "white" {}
+        [NoScaleOffset] _Optical ("Optical Skybox", Cube) = "white" {}
         _SemanticMask ("Semantic Segmenation Mask", 2D) = "grey" {}
     }
     SubShader
@@ -49,6 +51,8 @@ Shader "Unlit/SkyboxQuad"
             float _AspectRatio;
             float _TanFov;
             float _confidenceThresh;
+            float _opacity;
+            bool isDome;
             
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
@@ -108,7 +112,7 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = normalize(camRayWorld);
                     
                 // sample the texture
-                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, max(confidence.r + confidence.a, 1)) * confidence.a;
+                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, max(confidence.r + confidence.a, 1)) * confidence.a * _opacity;
                 //fixed4 col = fixed4(abs(i.uv), 0, 1);
                 //col = fixed4(confidence.rgb, 0.4f);
                 return col;

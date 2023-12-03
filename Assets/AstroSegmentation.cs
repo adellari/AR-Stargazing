@@ -69,7 +69,7 @@ namespace Niantic.Lightship.AR.Samples
             // Acquire a reference to the rendering camera
             m_camera = Camera.main;
             segmentationManager = m_camera.GetComponent<ARSemanticSegmentationManager>()?? m_camera.AddComponent<ARSemanticSegmentationManager>();
-            //occlusionManager = m_camera.GetComponent<AROcclusionManager>() ?? m_camera.AddComponent<AROcclusionManager>();
+            occlusionManager = m_camera.GetComponent<AROcclusionManager>() ?? m_camera.AddComponent<AROcclusionManager>(); //this will be disabled if not in use/being tested
             segmentationManager.MetadataInitialized += OnSemanticModelReady;
             
 
@@ -101,8 +101,7 @@ namespace Niantic.Lightship.AR.Samples
 
         void Update()
         {
-            //if (Time.realtimeSinceStartup - startedTime <= 7)     //debug step added to slow down app start
-                //return;
+            
 
             if (m_CurrentScreenOrientation != Screen.orientation)
             {
@@ -126,8 +125,9 @@ namespace Niantic.Lightship.AR.Samples
             _skyTexture = segmentationManager.GetSemanticChannelTexture("sky", out displayMatrix, viewport);
             _groundTexture = segmentationManager.GetSemanticChannelTexture("ground", out displayMatrix, viewport);
             //m_RawImage.texture = _skyTexture;
-            
-            
+
+            if (!_skyTexture || !_groundTexture)
+                return;
 
             if (!JFA_Mask || scaledSegmentation == null)
             {
@@ -150,8 +150,21 @@ namespace Niantic.Lightship.AR.Samples
             if(JFA_enabled)
                 DispatchFlood(scaledSegmentation);
             
-            //m_RawImage.material.SetMatrix("_displayMat", displayMatrix);
+            m_RawImage2.texture = scaledSegmentation;
+            m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
+            m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
+            m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+            m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
+            m_RawImage2.material.SetFloat("_TanFov", tanFov);
+            
+                
 
+            
+            
+        }
+
+        void DisplayDepth()
+        {
             if (occlusionManager.subsystem.running)
             {
                 /*
@@ -175,22 +188,6 @@ namespace Niantic.Lightship.AR.Samples
             {
                 Debug.Log("occlusion subsystem is NOT running");
             }
-                
-            
-            //m_RawImage.material.SetMatrix(k_DisplayMatrix, displayMatrix);
-            //m_RawImage.material.SetTexture("_SemanticTex", _groundTexture);
-            
-            m_RawImage2.texture = scaledSegmentation;
-            m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
-            m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
-            m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
-            m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
-            m_RawImage2.material.SetFloat("_TanFov", tanFov);
-            
-                
-
-            
-            
         }
 
         void DispatchBilinear(Texture mask)
