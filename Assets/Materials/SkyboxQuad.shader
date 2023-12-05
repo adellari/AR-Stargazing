@@ -2,9 +2,10 @@ Shader "Unlit/SkyboxQuad"
 {
     Properties
     {
-        [NoScaleOffset] _MainTex ("Cubemap Skybox", Cube) = "white" {}
+        [NoScaleOffset] _Infrared ("Infrared Skybox", Cube) = "white" {}
         [NoScaleOffset] _Constellations ("Constellation Skybox", Cube) = "white" {}
         [NoScaleOffset] _Optical ("Optical Skybox", Cube) = "white" {}
+        [NoScaleOffset] _hAlpha ("Hydrogen Alpha Skybox", Cube) = "white" {}
         _SemanticMask ("Semantic Segmenation Mask", 2D) = "grey" {}
     }
     SubShader
@@ -34,9 +35,12 @@ Shader "Unlit/SkyboxQuad"
                 float2 texcoord : TEXCOORD1;
             };
 
-            samplerCUBE _MainTex;
-            float4 _MainTex_ST;
-            float4 _MainTex_TexelSize;
+            samplerCUBE _Constellations;
+            samplerCUBE _hAlpha;
+            samplerCUBE _Infrared;
+            samplerCUBE _Optical;
+            float4 _Optical_ST;
+            float4 _Optical_TexelSize;
 
             sampler2D _DepthMask;
             float4 _DepthMask_ST;
@@ -47,12 +51,17 @@ Shader "Unlit/SkyboxQuad"
             
             float4x4 _InverseViewMatrix;
             float4x4 _DisplayMatrix;
+            float4x4 _starCorrection;
 
             float _AspectRatio;
             float _TanFov;
             float _confidenceThresh;
             float _opacity;
             bool isDome;
+
+            float _constellationBlend;
+            float _hAlphaBlend;
+            float _opticalBlend;
             
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
@@ -99,6 +108,7 @@ Shader "Unlit/SkyboxQuad"
                 //float2 s_uv = float2(i.texcoord.xy / i.texcoord.z);
                 //fixed3 confidence = bilinearSample(s_uv, _MainTex_TexelSize.zw); //pass the current uv and size of the main texture
                 fixed4 confidence = tex2D(_SemanticMask, s_uv);
+                fixed blendedConfidence = max(confidence.r + confidence.a, 1);
                 //float mask = confidence.r;
                 //mask = step(_confidenceThresh, mask);
 
@@ -109,10 +119,22 @@ Shader "Unlit/SkyboxQuad"
 
                 float3 camRayWorld = mul(_InverseViewMatrix, posOnCam);
                 camRayWorld = float3(camRayWorld.x, camRayWorld.y, camRayWorld.z);
+                float3 camRayWorldActual = normalize(camRayWorld);
+                
+                camRayWorld = mul(_starCorrection, camRayWorld);
                 camRayWorld = normalize(camRayWorld);
+
+                fixed halfDomeFactor = exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f); //e^(8x - 2) //use the max func because it only drops below 1 at like 0.1
                     
                 // sample the texture
-                fixed4 col = fixed4(texCUBE(_MainTex, camRayWorld).rgb, max(confidence.r + confidence.a, 1)) * confidence.a * _opacity;
+                fixed3 diffuseOp = texCUBE(_Optical, camRayWorld).rgb * _opticalBlend;
+                fixed3 diffuseHa = texCUBE(_hAlpha, camRayWorld).rgb * _hAlphaBlend;
+            
+                
+                //fixed4 col = fixed4(diffuseHa/2 + diffuseOp/2, blendedConfidence) * confidence.a;
+                fixed4 col = fixed4(diffuseHa/2 + diffuseOp/2, halfDomeFactor);
+                
+                col *= _opacity;
                 //fixed4 col = fixed4(abs(i.uv), 0, 1);
                 //col = fixed4(confidence.rgb, 0.4f);
                 return col;

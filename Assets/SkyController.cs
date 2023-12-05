@@ -16,7 +16,7 @@ public class SkyController : MonoBehaviour
     public void alignNorth(float heading, float incl)
     {
         float deg = -incl - Camera.main.transform.eulerAngles.x; //subtract because we expect it to be negative
-        Debug.Log($"aligning north indicator, latitude {incl}, camera incline {Camera.main.transform.eulerAngles.x}");
+        //Debug.Log($"aligning north indicator, latitude {incl}, camera incline {Camera.main.transform.eulerAngles.x}");
         Polaris.transform.localEulerAngles = new Vector3(90 + deg, 0f, heading); //incl modifies x 
     }
 
