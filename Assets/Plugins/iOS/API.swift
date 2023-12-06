@@ -27,10 +27,10 @@ public class UnityAPI: NSObject, NativeCallsProtocol {
 
     // Name of the gameobject that receives the
     // messages from the native side.
-    private static let API_GAMEOBJECT = "APIEntryPoint"
+    private static let API_GAMEOBJECT = "Native API Handler"
     // Name of the method to call when sending
     // messages from the native side.
-    private static let API_MESSAGE_FUNCTION = "ReceiveMessage"
+    private static let API_MESSAGE_FUNCTION = "ReceiveNative"
 
     public weak var communicator: UnityCommunicationProtocol!
     public var ready: () -> () = {}

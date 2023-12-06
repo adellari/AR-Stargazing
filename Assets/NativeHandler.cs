@@ -111,7 +111,6 @@ public struct MessageWithData<T>
 public class NativeHandler : MonoBehaviour
 {
     public GameObject cube;
-    public Transform Arm;
 
     public static NativeHandler Instance { get; private set; } 
 
@@ -165,48 +164,10 @@ public class NativeHandler : MonoBehaviour
         //remoteHand.setJointRotations(rotations.ToArray());
     }
 
-    void ReceiveMessage(string serializedMessage)
+    void ReceiveNative(string serializedMessage)
     {
         var header = JsonConvert.DeserializeObject<Message>(serializedMessage);
         switch (header.type) {
-            case "change-color":
-                _UpdateCubeColor(serializedMessage);
-                break;
-            case "arm-color":
-                var colorSet = JsonConvert.DeserializeObject<MessageWithData<int>>(serializedMessage).data;
-                Debug.Log("received color udpate info: " + colorSet);
-                //armCustom.ColorPreset = colorSet;
-                break;
-            case "arm-animation":
-                var animation = JsonConvert.DeserializeObject<MessageWithData<string>>(serializedMessage).data;
-                //animDirector.callAnimation(animation);
-                break;
-            case "set-arm":
-                var armSel = JsonConvert.DeserializeObject<MessageWithData<int>>(serializedMessage).data;
-                //armCustom.changeArm(armSel);
-                break;
-            case "jointP":
-                var jointPDataString = JsonConvert.DeserializeObject<MessageWithData<string>>(serializedMessage).data;
-                byte[] jointPData = Convert.FromBase64String(jointPDataString);
-                int jointId = jointPData[0];
-                float[] jointP = new float[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    jointP[i] = BitConverter.ToSingle(jointPData, i * 4 + 1);
-                }
-                //remoteHand.setJointPosition(jointId, new Vector3(jointP[0], jointP[1], jointP[2]));
-                break;
-            case "jointR":
-                var jointRDataString = JsonConvert.DeserializeObject<MessageWithData<string>>(serializedMessage).data;
-                byte[] jointRData = Convert.FromBase64String(jointRDataString);
-                int jointID = jointRData[0];
-                float[] jointR = new float[4];
-                for (int i = 0; i < 4; i++)
-                {
-                    jointR[i] = BitConverter.ToSingle(jointRData, i * 4 + 1);
-                }
-                //remoteHand.setJointRotation(jointID, new Vector4(jointR[0], jointR[1], jointR[2], jointR[3]));
-                break;
             default:
                 Debug.LogError("Unrecognized message '" + header.type + "'");
                 break;
