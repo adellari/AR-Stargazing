@@ -56,6 +56,8 @@ public class StarManager : MonoBehaviour
         var rot = Quaternion.AngleAxis(val, Vector3.forward);
         skyboxCorrection = Matrix4x4.Rotate(rot);
     }
+    
+    public IEnumerator enabledSemidome
 
     // Update is called once per frame
     void Update()
