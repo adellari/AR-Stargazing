@@ -6,8 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
 
-namespace Niantic.Lightship.AR.Samples
-{
+
     public class AstroSegmentation : MonoBehaviour
     {
 
@@ -61,6 +60,11 @@ namespace Niantic.Lightship.AR.Samples
         {
             JFA_exp = val;
             Debug.Log($"set the exp value to {JFA_exp}");
+        }
+
+        public void toggleSemanticMode(bool state)
+        {
+            
         }
             
         void Awake()
@@ -303,4 +307,4 @@ namespace Niantic.Lightship.AR.Samples
         }
     }
 
-}
+

@@ -124,7 +124,7 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = mul(_starCorrection, camRayWorld);
                 camRayWorld = normalize(camRayWorld);
 
-                fixed halfDomeFactor = exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f); //e^(8x - 2) //use the max func because it only drops below 1 at like 0.1
+                fixed halfDomeFactor = exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f); //e^(4x + 0.8) 
                     
                 // sample the texture
                 fixed3 diffuseOp = texCUBE(_Optical, camRayWorld).rgb * _opticalBlend;

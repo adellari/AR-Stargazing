@@ -20,6 +20,14 @@ public class StarManager : MonoBehaviour
             
         }
     }
+
+    public enum skyDisplay
+    {
+        dome,
+        hemi,
+        segment,
+        none
+    }
     
     public Material skybox;
     [Range(0, 360f)]
@@ -31,9 +39,47 @@ public class StarManager : MonoBehaviour
 
     [Range(0f, 1f)]
     public float skyOpacity;
+
+    public skyDisplay projection;
+    public AstroSegmentation segmentationManager;
     void Start()
     {
-        
+        var rot = Quaternion.AngleAxis(skyboxRotation, Vector3.forward);
+        skyboxCorrection = Matrix4x4.Rotate(rot);
+    }
+
+    //Set skyDisplay before calling these
+    public IEnumerator toggleSegment()
+    {
+        yield return null;
+    }
+    
+    public IEnumerator togglDome()
+    {
+        yield return null;
+    }
+    
+    //0-> 360, 0-> 360, 0-> 360
+    //540 is the middle of the scrollview 
+    // map 360 -> 720 
+    
+    public IEnumerator toggleHemi()
+    {
+        //determine our start and end values based on whether we're already in this state
+        float sV = projection == skyDisplay.hemi ? 0f : 1f; //start value
+        float eV = projection == skyDisplay.hemi ? 1f : 0f; //end value
+
+        float tt = 3f; //transition time
+        float st = Time.realtimeSinceStartup; //start time
+
+        while (Time.realtimeSinceStartup - st < tt)
+        {
+            skyOpacity = Mathf.Lerp(sV, eV, (Time.realtimeSinceStartup - st) / tt);
+            yield return null;
+        }
+
+        skyOpacity = eV;
+        yield return null;
     }
 
     public void onChangeSlider1(float val)
@@ -56,8 +102,6 @@ public class StarManager : MonoBehaviour
         var rot = Quaternion.AngleAxis(val, Vector3.forward);
         skyboxCorrection = Matrix4x4.Rotate(rot);
     }
-    
-    public IEnumerator enabledSemidome
 
     // Update is called once per frame
     void Update()

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Niantic.Lightship.AR.Samples;
+//using Niantic.Lightship.AR;
 using UnityEngine.Serialization;
 
 public class AstroCompass : MonoBehaviour
