@@ -62,6 +62,8 @@ Shader "Unlit/SkyboxQuad"
             float _constellationBlend;
             float _hAlphaBlend;
             float _opticalBlend;
+
+            int isHemisphere;
             
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
@@ -124,15 +126,22 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = mul(_starCorrection, camRayWorld);
                 camRayWorld = normalize(camRayWorld);
 
-                fixed halfDomeFactor = exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f); //e^(4x + 0.8) 
-                    
                 // sample the texture
                 fixed3 diffuseOp = texCUBE(_Optical, camRayWorld).rgb * _opticalBlend;
                 fixed3 diffuseHa = texCUBE(_hAlpha, camRayWorld).rgb * _hAlphaBlend;
-            
+                fixed4 col;
+
+                //0 : full dome | 1 : hemisphere
+                if (isHemisphere > -1)
+                {
+                    fixed halfDomeFactor = isHemisphere == 1? exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f) : 1; //e^(4x + 0.8)
+                    col = fixed4(diffuseHa + diffuseOp, halfDomeFactor);
+                }
+                else    //-1 : segmentation
+                {
+                    col = fixed4(diffuseHa + diffuseOp, blendedConfidence) * confidence.a;
+                }
                 
-                //fixed4 col = fixed4(diffuseHa/2 + diffuseOp/2, blendedConfidence) * confidence.a;
-                fixed4 col = fixed4(diffuseHa/2 + diffuseOp/2, halfDomeFactor);
                 
                 col *= _opacity;
                 //fixed4 col = fixed4(abs(i.uv), 0, 1);

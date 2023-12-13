@@ -28,6 +28,11 @@ public class AstroCompass : MonoBehaviour
     public RawImage debugQuad2;
     public AstroSegmentation semanticObj;
 
+    [Header("Core Values")] 
+    public float Heading = 0f;
+    public float Lat = 0f;
+    
+    
     public IEnumerator Start()
     {
         //lr = gameObject.AddComponent<LineRenderer>();
@@ -188,7 +193,7 @@ public class AstroCompass : MonoBehaviour
         //debugQuad.material.SetMatrix("_InverseViewMatrix", camToWorld);
         //debugQuad.material.SetTexture("_SemanticMask", semanticObj._texture);
         //debugQuad.material.SetMatrix("_DisplayMatrix", semanticObj.displayMatrix);
-
+        
     }
 
     // Update is called once per frame
@@ -201,17 +206,16 @@ public class AstroCompass : MonoBehaviour
             
             lastForward = transform.forward;
             lastOrientation = transform.rotation;
-
-            //lr.SetPosition(0, transform.forward * 1.1f + transform.position);
-            //lr.SetPosition(1, transform.position + polarisDirection * 50f);
+            
 
             debugBall.position = polarisDirection * 5f;
             debugText.text = heading.ToString();
-
+            
             skyIndicator.alignNorth(heading, lat);
-
+            Heading = heading;
+            Lat = lat;
+            
             debugText1.text = Input.compass.headingAccuracy.ToString();
-            //Debug.Log("set look vector: " + Input.compass.trueHeading);
         }
         
 

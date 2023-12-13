@@ -10,16 +10,26 @@ using UnityEngine.XR.ARFoundation;
     public class AstroSegmentation : MonoBehaviour
     {
 
+        public enum SegmentationStates
+        {
+            statusCheck,
+            activeSky,
+            off
+        }
+        
         const string k_DisplayMatrixName = "DisplayMatrix";
         public ARSemanticSegmentationManager segmentationManager;
         public AROcclusionManager occlusionManager;
         private readonly int k_DisplayMatrix = Shader.PropertyToID(k_DisplayMatrixName);
 
+        [Header("Render to Debug")]
         protected ScreenOrientation m_CurrentScreenOrientation;
         [SerializeField] protected RawImage m_RawImage;
         [SerializeField] protected RawImage m_RawImage2;
         [SerializeField] protected RawImage m_maskImage;
+        public int isHemisphere = 0;
         
+        [Header("Segmenation & Filtering Params")]
         [SerializeField] Material m_Material;
         // The rendering Unity camera
         private Camera m_camera;
@@ -31,14 +41,15 @@ using UnityEngine.XR.ARFoundation;
         private Matrix4x4 _displayMatrix;
         private bool segmentationReady = false;
         private RenderTexture _previousFrame;
-        private XRCpuImage? _depthImage;
+        //private XRCpuImage? _depthImage;
             
         [Header("Compute")] 
         [SerializeField] private RenderTexture JFA_Mask;
 
         [SerializeField] private RenderTexture scaledSegmentation;
         [SerializeField] private ComputeShader compute;
-        
+
+        [SerializeField] private SegmentationStates activeState;
         private bool JFA_enabled = true;
         private float JFA_smoothing = 0.02927906f;
         private float JFA_exp = 1.267775f;
@@ -64,6 +75,29 @@ using UnityEngine.XR.ARFoundation;
 
         public void toggleSemanticMode(bool state)
         {
+            if (state)
+            {
+                activeState = SegmentationStates.activeSky;
+            }
+            else
+                activeState = SegmentationStates.statusCheck;
+        }
+
+        //cannot be used to turn on sky segmentation, only go from statusCheck <-> off
+        public void toggleOff(bool state)
+        {
+            if (activeState == SegmentationStates.off)
+            {
+                if (!state)
+                    return;
+                activeState = SegmentationStates.statusCheck;
+            }
+            else
+            {
+                if (state)
+                    return;
+                activeState = SegmentationStates.off;
+            }
             
         }
             
@@ -80,6 +114,8 @@ using UnityEngine.XR.ARFoundation;
             // Get the current screen orientation, and update the raw image UI
             m_CurrentScreenOrientation = Screen.orientation;
             startedTime = Time.realtimeSinceStartup;
+            toggleOff(false);
+            Debug.Log($"Turned segmentation manager off: {activeState == SegmentationStates.off}");
         }
 
         void OnEnable()
@@ -103,29 +139,17 @@ using UnityEngine.XR.ARFoundation;
             segmentationReady = true;
         }
 
-        void Update()
+        void displaySegmentation()
         {
             
+            m_RawImage2.texture = scaledSegmentation;
+            m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
+            m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
+           
+        }
 
-            if (m_CurrentScreenOrientation != Screen.orientation)
-            {
-                m_CurrentScreenOrientation = Screen.orientation;
-                UpdateRawImage();
-            }
-
-            // Update the image
-            var sizeDelta = m_RawImage.rectTransform.sizeDelta;
-            var viewport = new XRCameraParams
-            {
-                screenWidth = (int)(sizeDelta.x), 
-                screenHeight = (int)sizeDelta.y,
-                screenOrientation = m_CurrentScreenOrientation
-            };
-
-            if (!segmentationReady)
-                return;
-
-            
+        void performSegmentation(XRCameraParams viewport)
+        {
             _skyTexture = segmentationManager.GetSemanticChannelTexture("sky", out displayMatrix, viewport);
             _groundTexture = segmentationManager.GetSemanticChannelTexture("ground", out displayMatrix, viewport);
             //m_RawImage.texture = _skyTexture;
@@ -145,24 +169,46 @@ using UnityEngine.XR.ARFoundation;
                 scaledSegmentation = new RenderTexture(m_camera.pixelWidth, m_camera.pixelHeight, 0);
                 scaledSegmentation.enableRandomWrite = true;
                 scaledSegmentation.Create();
-                
-                Debug.Log($"created mask render texture, initial dimensions {_skyTexture.width} by {_skyTexture.height}, with {_skyTexture.mipmapCount} mip levels");
             }
-            //Debug.Log("about to dispatch flood");
             
-            DispatchBilinear(_groundTexture);
+            
+            DispatchBilinear(_skyTexture);
             if(JFA_enabled)
                 DispatchFlood(scaledSegmentation);
+
+            displaySegmentation();
+        }
+        
+        void Update()
+        {
             
-            m_RawImage2.texture = scaledSegmentation;
-            m_RawImage2.material.SetTexture("_SemanticMask", scaledSegmentation);
-            m_RawImage2.material.SetMatrix("_DisplayMatrix", displayMatrix);
-            m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+
+            if (m_CurrentScreenOrientation != Screen.orientation)
+            {
+                m_CurrentScreenOrientation = Screen.orientation;
+                UpdateRawImage();
+            }
+            
             m_RawImage2.material.SetFloat("_AspectRatio", m_camera.aspect);
             m_RawImage2.material.SetFloat("_TanFov", tanFov);
-            
-                
+            m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+            m_RawImage2.material.SetInteger("isHemisphere", isHemisphere);
 
+            // Update the image
+            var sizeDelta = m_RawImage.rectTransform.sizeDelta;
+            var viewport = new XRCameraParams
+            {
+                screenWidth = (int)(sizeDelta.x), 
+                screenHeight = (int)sizeDelta.y,
+                screenOrientation = m_CurrentScreenOrientation
+            };
+
+            if (!segmentationReady)
+                return;
+            
+            
+            if(activeState == SegmentationStates.activeSky)
+                performSegmentation(viewport);
             
             
         }
@@ -200,7 +246,7 @@ using UnityEngine.XR.ARFoundation;
             var dim2 = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
 
             compute.SetTexture(3, "Result", scaledSegmentation);
-            compute.SetTexture(3, "Texture", _groundTexture);
+            compute.SetTexture(3, "Texture", _skyTexture);
             compute.SetFloat("_confidenceThreshold", confidenceThresh);
             compute.SetVector("TexSize", new Vector2(dim2.x, dim2.y));
             compute.SetVector("TexSize2", new Vector2(dim1.x, dim1.y));

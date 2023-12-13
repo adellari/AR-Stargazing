@@ -18,18 +18,32 @@ id<NativeCallsProtocol> api = NULL;
  */
 extern "C" {
 
-  void
-  sendUnityStateUpdate(const char* state)
-  {
-      const NSString* str = @(state);
-      [api onUnityStateChange: str];
-  }
+void
+sendUnityStateUpdate(const char* state)
+{
+    const NSString* str = @(state);
+    [api onUnityStateChange: str];
+}
 
-    void
-    setTestDelegate(TestDelegate delegate)
-    {
-        TestDelegate newDelegate = delegate;
-        [api onSetTestDelegate: newDelegate];
-    }
+void
+sendCompassUpdate(Float32 compassVal)
+{
+    [api onCompassUpdate: compassVal];
+}
+
+void
+setTestDelegate(TestDelegate delegate)
+{
+    TestDelegate newDelegate = delegate;
+    [api onSetTestDelegate: newDelegate];
+}
+
+void
+setProjectionDelegate(ProjectionDelegate delegate)
+{
+    ProjectionDelegate newDelegate = delegate;
+    [api onSetProjectionDelegate: newDelegate];
+}
+
 
 }
