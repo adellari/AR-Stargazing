@@ -127,7 +127,8 @@ void JFA_DistanceField(uint3 id : SV_DispatchThreadID)
     //else
     //{
         float dist = 1 / (distance(uv, pix) / texelSize.x * _jfaSmoothing);
-        Result[id.xy] = float4(Result[id.xy].xyz, 1 - exp(-_jfaExp*dist));
+        //Result[id.xy] = float4(Result[id.xy].xyz, 1 - exp(-_jfaExp*dist));
+        Result[id.xy] = float4(Result[id.xy].xyz, smoothstep(0, _jfaExp, dist));
     //}
     
 }
