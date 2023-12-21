@@ -1,4 +1,4 @@
-Shader "Unlit/Wireframe Dome"
+Shader "Unlit/SkyWireframe"
 {
     Properties
     {
@@ -6,6 +6,7 @@ Shader "Unlit/Wireframe Dome"
         _Frequency ("Frequency", Range(0, 200)) = 10
         _Opacity ("Line Opacity", Range(0, 1)) = 0.2
         _LineWidth ("Line Width", Range(0, 1)) = 0.02
+        _Cutoff("_Cutoff", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -38,6 +39,7 @@ Shader "Unlit/Wireframe Dome"
             float _Frequency;
             float _Opacity;
             float _LineWidth;
+            float _Cutoff;
             
             sampler2D _MainTex;
             float4 _MainTex_ST;
@@ -58,6 +60,8 @@ Shader "Unlit/Wireframe Dome"
                 screenUV.y *= _tanFOV;
 
                 float3 camRayWorld = normalize(mul(InverseViewMatrix, float4(screenUV, -1.,  0.)).xyz);
+                float _c = smoothstep(0, _Cutoff, dot(camRayWorld, float3(0, 1, 0)));
+                //_c = dot(camRayWorld, float3(0, 1, 0));
                 float theta = acos(camRayWorld.y);
                 float phi = atan2(camRayWorld.z, camRayWorld.x);
 
@@ -66,7 +70,7 @@ Shader "Unlit/Wireframe Dome"
                 // sample the texture
                 //fixed4 col = Line > 0.5 ? tex2D(_MainTex, i.uv) : float4(0, 1, 0, 1);
                 Line = smoothstep(1-_LineWidth, 1, max(cos(phi * _Frequency), sin(theta * _Frequency)));
-                fixed4 col = float4(Line, Line, Line, 1) * _Opacity;
+                fixed4 col = float4(Line, Line, Line, 1) * _Opacity * _c;
                 return col;
             }
             ENDCG
