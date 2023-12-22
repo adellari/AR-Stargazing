@@ -12,6 +12,7 @@ using AOT;
 public class HostNativeAPI {
     public delegate void TestDelegate(string name);
     public delegate void ProjectionDelegate(int flag);
+    public delegate void WavelengthDelegate(int flag);
     
     
     [DllImport("__Internal")]
@@ -25,6 +26,9 @@ public class HostNativeAPI {
     
     [DllImport("__Internal")]
     public static extern void setProjectionDelegate(ProjectionDelegate cb);
+
+    [DllImport("__Internal")]
+    public static extern void setWavelengthDelegate(WavelengthDelegate cb);
 }
 
 /// <summary>
@@ -43,8 +47,15 @@ public class UnityNativeAPI
     [MonoPInvokeCallback(typeof(HostNativeAPI.ProjectionDelegate))]
     public static void setProjection(int flag)
     {
-        Debug.Log($"Sset the projection flag to {flag}");
+        Debug.Log($"Set the projection flag to {flag}");
         _StarManager.toggleSkyChange(flag);
+    }
+
+    [MonoPInvokeCallback(typeof(HostNativeAPI.WavelengthDelegate))]
+    public static void setWavelength(int flag)
+    {
+        Debug.Log($"Received Swift set wavelength to {flag}");
+        _StarManager.onToggleWavelength(flag);
     }
     
 
@@ -63,6 +74,7 @@ public class API : MonoBehaviour
             HostNativeAPI.setTestDelegate(UnityNativeAPI.test);
             HostNativeAPI.sendUnityStateUpdate("ready");
             HostNativeAPI.setProjectionDelegate(UnityNativeAPI.setProjection);
+            HostNativeAPI.setWavelengthDelegate(UnityNativeAPI.setWavelength);
             
         }
 #endif

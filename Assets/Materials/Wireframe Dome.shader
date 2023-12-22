@@ -10,8 +10,8 @@ Shader "Unlit/SkyWireframe"
     }
     SubShader
     {
-        Blend One One
-        Tags { "RenderQueue"= "Transparent" "RenderType"="Transaprent" }
+        Blend SrcAlpha OneMinusSrcAlpha
+        Tags { "RenderQueue"= "Transparent" "RenderType"="Transparent" }
         
         Pass
         {

@@ -1,7 +1,8 @@
 #import <Foundation/Foundation.h>
 
 typedef void (*TestDelegate)(const char* data, int length);
-typedef void (*ProjectionDelegate)(int length);
+typedef void (*ProjectionDelegate)(int flag);
+typedef void (*WavelengthDelegate)(int flag);
 // NativeCallsProtocol defines protocol with methods you want to be called
 // from managed.
 
@@ -14,6 +15,7 @@ typedef void (*ProjectionDelegate)(int length);
 - (void) onCompassUpdate:(Float32) compassVal;
 - (void) onSetTestDelegate:(TestDelegate) delegate;
 - (void) onSetProjectionDelegate:(ProjectionDelegate) delegate;
+- (void) onSetWavelengthDelegate:(WavelengthDelegate) delegate;
 // other methods
 @end
 

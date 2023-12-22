@@ -26,6 +26,7 @@ using UnityEngine.XR.ARFoundation;
         protected ScreenOrientation m_CurrentScreenOrientation;
         [SerializeField] protected RawImage m_RawImage;
         [SerializeField] protected RawImage m_RawImage2;
+        [SerializeField] protected RawImage m_WireImage;
         [SerializeField] protected RawImage m_maskImage;
         public int isHemisphere = 0;
         
@@ -193,6 +194,10 @@ using UnityEngine.XR.ARFoundation;
             m_RawImage2.material.SetFloat("_TanFov", tanFov);
             m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
             m_RawImage2.material.SetInteger("isHemisphere", isHemisphere);
+            
+            m_WireImage.material.SetFloat("_aspectRatio", m_camera.aspect);
+            m_WireImage.material.SetFloat("_tanFOV", tanFov);
+            m_WireImage.material.SetMatrix("InverseViewMatrix", m_camera.cameraToWorldMatrix);
 
             // Update the image
             var sizeDelta = m_RawImage.rectTransform.sizeDelta;
@@ -340,6 +345,7 @@ using UnityEngine.XR.ARFoundation;
 
             // Update the raw image dimensions and the raw image material parameters.
             m_RawImage.rectTransform.sizeDelta = rectSize;
+            m_WireImage.rectTransform.sizeDelta = rectSize;
             //m_RawImage.material = m_Material;
         }
 

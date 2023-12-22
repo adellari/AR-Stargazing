@@ -37,6 +37,8 @@ public class StarManager : MonoBehaviour
     [SerializeField]
     public List<starmap> Starmaps;
 
+    [SerializeField] private int activeCount = 1;
+
     [Range(0f, 1f)]
     public float skyOpacity;
 
@@ -205,6 +207,15 @@ public class StarManager : MonoBehaviour
         }
     }
 
+    public void onToggleWavelength(int wave)
+    {
+        bool state = Starmaps[wave].active;
+        Starmaps[wave].active = !state;
+        Starmaps[wave].blendFactor = !state ? 1f : 0f;
+        activeCount = Starmaps.Select(a => a.active).Count();
+        Debug.Log("Star manager received toggle skybox request");
+    }
+
     public void onOpacityChange(float val)
     {
         skyOpacity = val;
@@ -227,5 +238,6 @@ public class StarManager : MonoBehaviour
         }
         skybox.SetFloat("_opacity", skyOpacity);
         skybox.SetMatrix("_starCorrection", skyboxCorrection);
+        skybox.SetInt("activeCount", activeCount);
     }
 }

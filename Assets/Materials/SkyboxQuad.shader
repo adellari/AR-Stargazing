@@ -6,6 +6,7 @@ Shader "Unlit/SkyboxQuad"
         [NoScaleOffset] _Constellations ("Constellation Skybox", Cube) = "white" {}
         [NoScaleOffset] _Optical ("Optical Skybox", Cube) = "white" {}
         [NoScaleOffset] _hAlpha ("Hydrogen Alpha Skybox", Cube) = "white" {}
+        [NoScaleOffset] _Microwave ("Microwave Skybox", Cube) = "white" {}
         _SemanticMask ("Semantic Segmenation Mask", 2D) = "grey" {}
     }
     SubShader
@@ -39,6 +40,7 @@ Shader "Unlit/SkyboxQuad"
             samplerCUBE _hAlpha;
             samplerCUBE _Infrared;
             samplerCUBE _Optical;
+            samplerCUBE _Microwave;
             float4 _Optical_ST;
             float4 _Optical_TexelSize;
 
@@ -62,8 +64,11 @@ Shader "Unlit/SkyboxQuad"
             float _constellationBlend;
             float _hAlphaBlend;
             float _opticalBlend;
+            float _microwaveBlend;
+            float _infraredBlend;
 
             int isHemisphere;
+            int activeCount;
             
             fixed4 Lerp(fixed4 a, fixed4 b, float t)
             {
@@ -126,20 +131,36 @@ Shader "Unlit/SkyboxQuad"
                 camRayWorld = mul(_starCorrection, camRayWorld);
                 camRayWorld = normalize(camRayWorld);
 
-                // sample the texture
-                fixed3 diffuseOp = texCUBE(_Optical, camRayWorld).rgb * _opticalBlend;
-                fixed3 diffuseHa = texCUBE(_hAlpha, camRayWorld).rgb * _hAlphaBlend;
                 fixed4 col;
+                
+                // sample the texture
+                fixed3 diffuseOp = fixed3(0, 0, 0);
+                fixed3 diffuseHa = fixed3(0, 0, 0);
+                fixed3 diffuseIr = fixed3(0, 0, 0);
+                fixed3 diffuseMicro = fixed3(0, 0, 0);
+                
+                
+                diffuseOp = texCUBE(_Optical, float3(-camRayWorld.x, camRayWorld.y, camRayWorld.z) ).rgb * _opticalBlend / activeCount;
+
+                if(_hAlphaBlend > 0.)
+                diffuseHa = texCUBE(_hAlpha, camRayWorld).rgb * _hAlphaBlend / activeCount;
+
+                if(_infraredBlend > 0.)
+                diffuseIr = texCUBE(_Infrared, camRayWorld).rgb * _infraredBlend / activeCount;
+
+                if(_microwaveBlend > 0.)
+                diffuseMicro = texCUBE(_Microwave, camRayWorld).rgb * _microwaveBlend / activeCount;
+                
 
                 //0 : full dome | 1 : hemisphere
                 if (isHemisphere > -1)
                 {
                     fixed halfDomeFactor = isHemisphere == 1? exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f) : 1; //e^(4x + 0.8)
-                    col = fixed4(diffuseHa + diffuseOp, halfDomeFactor);
+                    col = fixed4( (diffuseHa + diffuseOp + diffuseMicro + diffuseIr), halfDomeFactor);
                 }
                 else    //-1 : segmentation
                 {
-                    col = fixed4(diffuseHa + diffuseOp, blendedConfidence) * confidence.a;
+                    col = fixed4( (diffuseHa + diffuseOp + diffuseMicro + diffuseIr), blendedConfidence) * confidence.a;
                 }
                 
                 

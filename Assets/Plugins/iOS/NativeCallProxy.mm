@@ -45,5 +45,12 @@ setProjectionDelegate(ProjectionDelegate delegate)
     [api onSetProjectionDelegate: newDelegate];
 }
 
+void
+setWavelengthDelegate(WavelengthDelegate delegate)
+{
+    WavelengthDelegate newDelegate = delegate;
+    [api onSetWavelengthDelegate: newDelegate];
+    
+}
 
 }
