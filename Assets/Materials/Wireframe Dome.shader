@@ -2,7 +2,7 @@ Shader "Unlit/SkyWireframe"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Star Texture", Cube) = "white" {}
         _Frequency ("Frequency", Range(0, 200)) = 10
         _Opacity ("Line Opacity", Range(0, 1)) = 0.2
         _LineWidth ("Line Width", Range(0, 1)) = 0.02
@@ -41,7 +41,7 @@ Shader "Unlit/SkyWireframe"
             float _LineWidth;
             float _Cutoff;
             
-            sampler2D _MainTex;
+            samplerCUBE _MainTex;
             float4 _MainTex_ST;
 
             v2f vert (appdata v)
@@ -71,6 +71,7 @@ Shader "Unlit/SkyWireframe"
                 //fixed4 col = Line > 0.5 ? tex2D(_MainTex, i.uv) : float4(0, 1, 0, 1);
                 Line = smoothstep(1-_LineWidth, 1, max(cos(phi * _Frequency), sin(theta * _Frequency)));
                 fixed4 col = float4(Line, Line, Line, 1) * _Opacity * _c;
+                
                 return col;
             }
             ENDCG

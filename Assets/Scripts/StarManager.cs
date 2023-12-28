@@ -13,7 +13,6 @@ public class StarManager : MonoBehaviour
         public bool active;
         [Range(0f, 1f)]
         public float blendFactor;
-
         public void setProperty(Material mat, float val)
         {
             mat.SetFloat(propertyName, val);
@@ -32,7 +31,7 @@ public class StarManager : MonoBehaviour
     public Material skybox;
     [Range(0, 360f)]
     public float skyboxRotation = 0;
-
+    public Material starMat;
     private Matrix4x4 skyboxCorrection;
     [SerializeField]
     public List<starmap> Starmaps;
@@ -212,8 +211,9 @@ public class StarManager : MonoBehaviour
         bool state = Starmaps[wave].active;
         Starmaps[wave].active = !state;
         Starmaps[wave].blendFactor = !state ? 1f : 0f;
-        activeCount = Starmaps.Select(a => a.active).Count();
-        Debug.Log("Star manager received toggle skybox request");
+        activeCount = Starmaps.Where(a => a.active).Count();
+        //Debug.Log("active ")
+        Debug.Log($"Star manager received toggle skybox request, active waves: {activeCount}");
     }
 
     public void onOpacityChange(float val)
@@ -238,6 +238,7 @@ public class StarManager : MonoBehaviour
         }
         skybox.SetFloat("_opacity", skyOpacity);
         skybox.SetMatrix("_starCorrection", skyboxCorrection);
+        starMat.SetMatrix("_RotationMatrix", skyboxCorrection);
         skybox.SetInt("activeCount", activeCount);
     }
 }

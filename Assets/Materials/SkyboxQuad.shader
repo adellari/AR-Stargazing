@@ -2,6 +2,7 @@ Shader "Unlit/SkyboxQuad"
 {
     Properties
     {
+        _MainTex ("Mandatory Main Texture", 2D) = "white" {}
         [NoScaleOffset] _Infrared ("Infrared Skybox", Cube) = "white" {}
         [NoScaleOffset] _Constellations ("Constellation Skybox", Cube) = "white" {}
         [NoScaleOffset] _Optical ("Optical Skybox", Cube) = "white" {}

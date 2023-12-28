@@ -28,6 +28,7 @@ using UnityEngine.XR.ARFoundation;
         [SerializeField] protected RawImage m_RawImage2;
         [SerializeField] protected RawImage m_WireImage;
         [SerializeField] protected RawImage m_maskImage;
+        [SerializeField] protected RawImage m_Stars;
         public int isHemisphere = 0;
         
         [Header("Segmenation & Filtering Params")]
@@ -195,10 +196,16 @@ using UnityEngine.XR.ARFoundation;
             m_RawImage2.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
             m_RawImage2.material.SetInteger("isHemisphere", isHemisphere);
             
+            m_Stars.material.SetFloat("_aspectRatio", m_camera.aspect);
+            m_Stars.material.SetFloat("_tanFOV", tanFov);
+            m_Stars.material.SetMatrix("_InverseViewMatrix", m_camera.cameraToWorldMatrix);
+            
             m_WireImage.material.SetFloat("_aspectRatio", m_camera.aspect);
             m_WireImage.material.SetFloat("_tanFOV", tanFov);
             m_WireImage.material.SetMatrix("InverseViewMatrix", m_camera.cameraToWorldMatrix);
 
+            
+            
             // Update the image
             var sizeDelta = m_RawImage.rectTransform.sizeDelta;
             var viewport = new XRCameraParams
@@ -346,6 +353,7 @@ using UnityEngine.XR.ARFoundation;
             // Update the raw image dimensions and the raw image material parameters.
             m_RawImage.rectTransform.sizeDelta = rectSize;
             m_WireImage.rectTransform.sizeDelta = rectSize;
+            m_Stars.rectTransform.sizeDelta = rectSize;
             //m_RawImage.material = m_Material;
         }
 

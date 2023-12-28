@@ -60,7 +60,7 @@ void Bilinear_Sample(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void JFA_Init(uint3 id : SV_DispatchThreadID)
 {
-    float2 uv = float2(id.xy / TexSize);
+    float2 uv = float2(id.x / TexSize.x, id.y / TexSize.y);
     Result[id.xy] = float4(uv, 0, 1) * step(0.01, Texture.SampleLevel(TexLinearClampSampler, uv, 0).r);
     
 }

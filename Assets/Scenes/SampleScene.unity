@@ -708,6 +708,78 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &507643158
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 507643161}
+  - component: {fileID: 507643160}
+  - component: {fileID: 507643159}
+  m_Layer: 5
+  m_Name: Stars Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &507643159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507643158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 2100000, guid: c898165fbdb1b41ccadc596dfd4ff121, type: 2}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &507643160
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507643158}
+  m_CullTransparentMesh: 1
+--- !u!224 &507643161
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507643158}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1237521878}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 930, y: 1105.8999}
+  m_Pivot: {x: 0, y: 1}
 --- !u!1 &551004380
 GameObject:
   m_ObjectHideFlags: 0
@@ -2054,6 +2126,7 @@ RectTransform:
   - {fileID: 715592428}
   - {fileID: 1616651188}
   - {fileID: 728433363}
+  - {fileID: 507643161}
   - {fileID: 385829127}
   - {fileID: 744481492}
   - {fileID: 892196519}
@@ -2828,6 +2901,7 @@ MonoBehaviour:
   m_RawImage2: {fileID: 1616651189}
   m_WireImage: {fileID: 728433361}
   m_maskImage: {fileID: 385829128}
+  m_Stars: {fileID: 507643159}
   isHemisphere: 0
   m_Material: {fileID: 2100000, guid: 10b10153344b643e9b0f91cfba0281bc, type: 2}
   _skyTexture: {fileID: 0}
@@ -2919,6 +2993,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skybox: {fileID: 2100000, guid: 65c6811bcafe4499bb14fa171f4359fd, type: 2}
   skyboxRotation: 45
+  starMat: {fileID: 2100000, guid: c898165fbdb1b41ccadc596dfd4ff121, type: 2}
   Starmaps:
   - name: Infrared
     propertyName: _infraredBlend
