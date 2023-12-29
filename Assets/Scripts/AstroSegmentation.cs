@@ -258,7 +258,7 @@ using UnityEngine.XR.ARFoundation;
             var dim2 = new Vector2Int(m_camera.pixelWidth, m_camera.pixelHeight);
 
             compute.SetTexture(3, "Result", scaledSegmentation);
-            compute.SetTexture(3, "Texture", _groundTexture);
+            compute.SetTexture(3, "Texture", _skyTexture);
             compute.SetFloat("_confidenceThreshold", confidenceThresh);
             compute.SetVector("TexSize", new Vector2(dim2.x, dim2.y));
             compute.SetVector("TexSize2", new Vector2(dim1.x, dim1.y));

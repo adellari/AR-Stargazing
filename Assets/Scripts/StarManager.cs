@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,7 @@ public class StarManager : MonoBehaviour
         none
     }
     
+    
     public Material skybox;
     [Range(0, 360f)]
     public float skyboxRotation = 0;
@@ -41,11 +43,14 @@ public class StarManager : MonoBehaviour
     [Range(0f, 1f)]
     public float skyOpacity;
 
+    [Range(0f, 1f)]
+    public float starOpacity = 0;
     public skyDisplay projection;
     public AstroSegmentation segmentationManager;
     void Start()
     {
         var rot = Quaternion.AngleAxis(skyboxRotation, Vector3.forward);
+        starMat.SetInt("_hemisphere", -1);
         skyboxCorrection = Matrix4x4.Rotate(rot);
         projection = skyDisplay.none;
     }
@@ -57,6 +62,7 @@ public class StarManager : MonoBehaviour
         float sV = projection != skyDisplay.segment ? 0f : 1f; //start value
         float eV = projection != skyDisplay.segment ? 1f : 0f; //end value
 
+        starMat.SetInt("_hemisphere", eV == 1? -1: 0);
         float tt = 1.5f; //transition time
         float st = Time.realtimeSinceStartup; //start time
 
@@ -72,7 +78,9 @@ public class StarManager : MonoBehaviour
             segmentationManager.toggleSemanticMode(true);
         else
             segmentationManager.toggleOff(false);
+        //starMat.SetInt("_hemisphere", 1 * Convert.ToInt32(projection == skyDisplay.segment));
         Debug.Log("finished setting segment coroutine");
+        
         yield return null;
     }
     
@@ -82,6 +90,7 @@ public class StarManager : MonoBehaviour
         float sV = projection != skyDisplay.dome ? 0f : 1f; //start value
         float eV = projection != skyDisplay.dome ? 1f : 0f; //end value
 
+        starMat.SetInt("_hemisphere", eV == 0? 0: -1);
         float tt = 1.5f; //transition time
         float st = Time.realtimeSinceStartup; //start time
 
@@ -93,6 +102,7 @@ public class StarManager : MonoBehaviour
 
         skyOpacity = eV;
         projection = projection == skyDisplay.dome? skyDisplay.none : skyDisplay.dome;
+        //starMat.SetInt("_hemisphere", 1 * Convert.ToInt32(projection == skyDisplay.hemi));
         Debug.Log("finished setting full dome coroutine");
         yield return null;
     }
@@ -103,10 +113,12 @@ public class StarManager : MonoBehaviour
     
     public IEnumerator toggleHemi()
     {
+        
         //determine our start and end values based on whether we're already in this state
         float sV = projection != skyDisplay.hemi ? 0f : 1f; //start value
         float eV = projection != skyDisplay.hemi ? 1f : 0f; //end value
-
+        starMat.SetInt("_hemisphere", eV == 1? 1: -1);
+        
         float tt = 1.5f; //transition time
         float st = Time.realtimeSinceStartup; //start time
 
@@ -118,6 +130,8 @@ public class StarManager : MonoBehaviour
 
         skyOpacity = eV;
         projection = projection == skyDisplay.hemi? skyDisplay.none : skyDisplay.hemi;
+        
+        
         Debug.Log("finished setting hemisphere coroutine");
         yield return null;
     }
@@ -129,6 +143,7 @@ public class StarManager : MonoBehaviour
         float sV = 1f;
         float eV = 0f;
 
+        starMat.SetInt("_hemisphere", -1);
         float tt = 0.8f;
         float st = Time.realtimeSinceStartup;
 
@@ -156,6 +171,7 @@ public class StarManager : MonoBehaviour
                 break;
             case -1:
                 segmentationManager.isHemisphere = 0;
+                //starMat.SetInt("_hemisphere", -1);
                 break;
         }
 
@@ -199,11 +215,13 @@ public class StarManager : MonoBehaviour
 
     public void onChangeSlider1(float val)
     {
-        if (Starmaps != null)
-        {
-            if (Starmaps.Count > 0)
-                Starmaps[0].blendFactor = val;
-        }
+        starMat.SetFloat("_Cutoff", val);
+    }
+
+    public void onToggleStars(bool val)
+    {
+        starOpacity = starOpacity == 0f? 1f : 0f;
+        Debug.Log($"Set sky opacity to: {skyOpacity}" );
     }
 
     public void onToggleWavelength(int wave)
@@ -239,6 +257,7 @@ public class StarManager : MonoBehaviour
         skybox.SetFloat("_opacity", skyOpacity);
         skybox.SetMatrix("_starCorrection", skyboxCorrection);
         starMat.SetMatrix("_RotationMatrix", skyboxCorrection);
+        starMat.SetFloat("_overallOpacity", starOpacity);
         skybox.SetInt("activeCount", activeCount);
     }
 }

@@ -157,6 +157,8 @@ Shader "Unlit/SkyboxQuad"
                 if (isHemisphere > -1)
                 {
                     fixed halfDomeFactor = isHemisphere == 1? exp(4 * dot(camRayWorldActual, float3(0, 1, 0)) + 0.8f) : 1; //e^(4x + 0.8)
+                    //fixed _ = dot(camRayWorldActual, float3(0, 1, 0));
+                    //fixed halfDomeFactor = isHemisphere == 1? smoothstep(-0.4, 0.2, _)  : 1;
                     col = fixed4( (diffuseHa + diffuseOp + diffuseMicro + diffuseIr), halfDomeFactor);
                 }
                 else    //-1 : segmentation

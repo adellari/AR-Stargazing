@@ -4,7 +4,10 @@ Shader "Unlit/ShootingStars"
     {
         _MainTex ("Mandatory Main Texture", 2D) = "white" {}
         _CubeTex ("Cube Star Texture", Cube) = "white" {}
-        _Opacity("Starmap opacity", Range(0, 100)) = 1
+        _Frequency ("Frequency", Range(0, 200)) = 10
+        _LineOpacity ("Line Opacity", Range(0, 1)) = 0.2
+        _LineWidth ("Line Width", Range(0, 1)) = 0.02
+        _Cutoff("_Cutoff", Range(0, 1)) = 0
         //_XRange("X Slider", Range(-1, 1)) = 1
         //_YRange("Y Slider", Range(-1, 1)) = 1
     }
@@ -45,8 +48,12 @@ Shader "Unlit/ShootingStars"
             
             samplerCUBE _CubeTex;
             float4 _CubeTex_ST;
-            float _Opacity;
-            
+            float _Frequency;
+            float _LineOpacity;
+            float _LineWidth;
+            float _Cutoff;
+            float _overallOpacity;
+            int _hemisphere;
             
             
 
@@ -113,21 +120,33 @@ Shader "Unlit/ShootingStars"
                 fixed4 screenRay = fixed4((i.texcoord * 2) - 1, -1, 0);
                 screenRay.x *= _aspectRatio * _tanFOV;
                 screenRay.y *= _tanFOV;
-
+                //_hemisphere = 1;
                 fixed2 cuv = i.texcoord - fixed2(0.5, 0.5);
                 cuv.x *= _aspectRatio; 
 
                 cuv *= 100.;
                 fixed3 col = fixed3(0, 0, 0);
-                fixed3 worldRay = normalize(mul(_InverseViewMatrix, screenRay).xyz);
-                worldRay = mul(_RotationMatrix, worldRay);
-                fixed3 colStars = texCUBE(_CubeTex, float3(-worldRay.x, worldRay.y, worldRay.z)).rgb;
-                col =  colStars;
+                
+                float3 camRayWorld = normalize(mul(_InverseViewMatrix, screenRay).xyz);
+                //float _c = _hemisphere >= 0? _hemisphere == 1? smoothstep(0-_Cutoff, _Cutoff, dot(camRayWorld, float3(0, 1, 0))): 1 : 0;
+                float _c = _hemisphere == 0? _hemisphere == 1? smoothstep(0-_Cutoff, _Cutoff, dot(camRayWorld, float3(0, 1, 0))): 1 : 0;
+                //_c = dot(camRayWorld, float3(0, 1, 0));
+                float theta = acos(camRayWorld.y);
+                float phi = atan2(camRayWorld.z, camRayWorld.x);
+
+                float Line = 0;
+                
+                // sample the texture
+                //fixed4 col = Line > 0.5 ? tex2D(_MainTex, i.uv) : float4(0, 1, 0, 1);
+                Line = smoothstep(1-_LineWidth, 1, max(cos(phi * _Frequency), sin(theta * _Frequency)));
+                //col = float4(Line, Line, Line, 1) * _LineOpacity * _c;
+                fixed4 colStars = texCUBE(_CubeTex, float3(-camRayWorld.x, camRayWorld.y, camRayWorld.z));
+                col +=  colStars.rgb;
                 //col = tex2D(_MainTex, i.texcoord).rgb;
 
                 drawMeteors(col, cuv);
                 //return fixed4(cuv, 0, 1);
-                return fixed4(col, 1);
+                return fixed4(col * _overallOpacity, 1 * _overallOpacity * colStars.a);
             }
             ENDCG
         }

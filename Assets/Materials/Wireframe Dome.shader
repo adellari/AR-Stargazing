@@ -19,8 +19,6 @@ Shader "Unlit/SkyWireframe"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
-
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -60,7 +58,7 @@ Shader "Unlit/SkyWireframe"
                 screenUV.y *= _tanFOV;
 
                 float3 camRayWorld = normalize(mul(InverseViewMatrix, float4(screenUV, -1.,  0.)).xyz);
-                float _c = smoothstep(0, _Cutoff, dot(camRayWorld, float3(0, 1, 0)));
+                float _c = smoothstep(-0.2, _Cutoff, dot(camRayWorld, float3(0, 1, 0)));
                 //_c = dot(camRayWorld, float3(0, 1, 0));
                 float theta = acos(camRayWorld.y);
                 float phi = atan2(camRayWorld.z, camRayWorld.x);
