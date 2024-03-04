@@ -1,5 +1,5 @@
 # AR-Stargazing
- A mobile augmented reality app for stargazing
+ A mobile app leveraging machine learning to bring the stars into your augmented reality world.
 
 ## Overlay Selection 
 Three distinct modes are available for content overlay: Planetarium, Hemisphere, and Segmentation. The distinction comes from how the sky night is masked and imposed on top of the real world.
